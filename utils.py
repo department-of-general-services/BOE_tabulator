@@ -110,4 +110,4 @@ def store_pdf_text_to_df(path):
         except ValueError:
             print(f"No date found for file {pdf_path}")
     print(f"Wrote {len(text_df)} rows to the table of minutes.")
-    return text_df
+    return text_df  
