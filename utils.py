@@ -20,17 +20,21 @@ def parse_long_dates(date_string):
         month (str): The month as a string representing an integer between 1 and 12
         day (str): The day as a string representing an integer between 1 and 31
     """
+    month = date_string.replace(" ", "")[:3]
     year = date_string[-4:]
-    month = date_string[:3]
     try:
         month = str(time.strptime(month, "%b").tm_mon)
     except ValueError as err:
-        print(f"Encountered ValueError on file: {string}")
+        print(f"Encountered ValueError on file: {date_string}")
     day = date_string.split(" ")[1]
     day = "".join(filter(str.isdigit, day))
-    assert year.isnumeric(), f"The year is not numeric ({date_string})."
-    assert month.isnumeric(), f"The month is not numeric ({date_string})."
-    assert day.isnumeric(), f"The day is not numeric ({date_string})."
+    assert (
+        year.isnumeric()
+    ), f"The year is not numeric. year: {year} input: {date_string}."
+    assert (
+        month.isnumeric()
+    ), f"The month is not numeric. month: {month} input: {date_string}."
+    assert day.isnumeric(), f"The day is not numeric. day: {day} input: {date_string}."
     return year, month, day
 
 
@@ -61,7 +65,7 @@ def store_boe_pdfs(base_url, minutes_url):
         # find all links where the associated text contains the year
         link = soup.find("a", href=True, text=str(year))
         annual_url = base_url + link["href"]
-        print(annual_url)
+        print(f"Saving files from url: {annual_url}")
         # now follow the link to the page with that year's pdfs
         response_annual = requests.get(annual_url)
         soup_annual = BeautifulSoup(response_annual.text, "html.parser")
@@ -71,11 +75,13 @@ def store_boe_pdfs(base_url, minutes_url):
             pdf_url = base_url + pdf_location
             pdf_file = requests.get(pdf_url)
             # derive name of the pdf file we're going to create
-            pdf_html_text = link.get_text().strip()
+            # encoding and decoding removes hidden characters
+            pdf_html_text = (
+                link.get_text().strip().encode("ascii", "ignore").decode("utf-8")
+            )
+            # handle cases where the date is written out in long form
             pdf_year, pdf_month, pdf_day = parse_long_dates(pdf_html_text)
             pdf_filename = "_".join([pdf_year, pdf_month, pdf_day]) + ".pdf"
-            if idx % 10 == 0:
-                print(f"Saving file: {pdf_filename}")
             try:
                 with open(save_path / pdf_filename, "wb") as f:
                     f.write(pdf_file.content)
@@ -110,4 +116,4 @@ def store_pdf_text_to_df(path):
         except ValueError:
             print(f"No date found for file {pdf_path}")
     print(f"Wrote {len(text_df)} rows to the table of minutes.")
-    return text_df  
+    return text_df
