@@ -11,42 +11,44 @@ from datetime import datetime
 def parse_long_dates(date_string):
     """Extracts three simple strings representing the year, month, and day 
     from a date in the  in the format 'November 19, 2010'.
-
     Args:
         date_string (str): The date in 'long' format
-
     Returns:
         year (str): The year as a four-character string
         month (str): The month as a string representing an integer between 1 and 12
         day (str): The day as a string representing an integer between 1 and 31
     """
-    month = date_string.replace(" ", "")[:3]
+    # print(f"date string: {date_string}")
+    while not date_string[-1].isnumeric():
+        date_string = date_string[:-1]
+    month = date_string[:3]
+    if month == "une":
+        month = "Jun"
     year = date_string[-4:]
     try:
         month = str(time.strptime(month, "%b").tm_mon)
     except ValueError as err:
+        print(f"month: {month}")
         print(f"Encountered ValueError on file: {date_string}")
     day = date_string.split(" ")[1]
     day = "".join(filter(str.isdigit, day))
     assert (
         year.isnumeric()
-    ), f"The year is not numeric. year: {year} input: {date_string}."
+    ), f"The year is not numeric. year: {year} input: {date_string}"
     assert (
         month.isnumeric()
-    ), f"The month is not numeric. month: {month} input: {date_string}."
-    assert day.isnumeric(), f"The day is not numeric. day: {day} input: {date_string}."
+    ), f"The month is not numeric. month: {month} input: {date_string}"
+    assert day.isnumeric(), f"The day is not numeric. day: {day} input: {date_string}"
     return year, month, day
 
 
 def store_boe_pdfs(base_url, minutes_url):
     """Finds .pdf files stored at the given url and stores them within the 
     repository for later analysis. 
-
     Args:
         base_url (str): The main url for the Comptroller of Baltimore's webiste
         minutes_url (str): The url where the function can find links to pages of 
             pdf files organized by year
-
     Returns:
         None: This is a void function.
     """
@@ -54,6 +56,7 @@ def store_boe_pdfs(base_url, minutes_url):
     soup = BeautifulSoup(response.text, "html.parser")
     root = Path.cwd()
     pdf_dir = root / "pdf_files"
+    total_counter = 0
 
     if not pdf_dir.is_dir():
         pdf_dir.mkdir(parents=True, exist_ok=False)
@@ -80,13 +83,17 @@ def store_boe_pdfs(base_url, minutes_url):
                 link.get_text().strip().encode("ascii", "ignore").decode("utf-8")
             )
             # handle cases where the date is written out in long form
-            pdf_year, pdf_month, pdf_day = parse_long_dates(pdf_html_text)
-            pdf_filename = "_".join([pdf_year, pdf_month, pdf_day]) + ".pdf"
-            try:
-                with open(save_path / pdf_filename, "wb") as f:
-                    f.write(pdf_file.content)
-            except TypeError as err:
-                print(f"an error occurred with path {pdf_location}: {err}")
+            if any(char.isdigit() for char in pdf_html_text):
+                pdf_year, pdf_month, pdf_day = parse_long_dates(pdf_html_text)
+                pdf_filename = "_".join([pdf_year, pdf_month, pdf_day]) + ".pdf"
+                try:
+                    with open(save_path / pdf_filename, "wb") as f:
+                        f.write(pdf_file.content)
+                    total_counter += 1
+                except TypeError as err:
+                    print(f"an error occurred with path {pdf_location}: {err}")
+    print(f"Wrote {total_counter} .pdf files to local repo.")
+    return
 
 
 def store_pdf_text_to_df(path):
