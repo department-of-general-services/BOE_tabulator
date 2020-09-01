@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import PyPDF2
 from datetime import datetime
+from pathlib import Path
 
 
 def parse_long_dates(date_string):
@@ -124,3 +125,7 @@ def store_pdf_text_to_df(path):
             print(f"No date found for file {pdf_path}")
     print(f"Wrote {len(text_df)} rows to the table of minutes.")
     return text_df
+
+
+def is_empty(_dir: Path) -> bool:
+    return not bool([_ for _ in _dir.iterdir()])
