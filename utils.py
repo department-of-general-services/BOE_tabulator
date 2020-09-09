@@ -11,7 +11,8 @@ from pathlib import Path
 
 def parse_long_dates(date_string):
     """Extracts three simple strings representing the year, month, and day 
-    from a date in the  in the format 'November 19, 2010'.
+    from a date in the  in the long format like 'November 19, 2010'.
+
     Args:
         date_string (str): The date in 'long' format
     Returns:
@@ -19,13 +20,17 @@ def parse_long_dates(date_string):
         month (str): The month as a string representing an integer between 1 and 12
         day (str): The day as a string representing an integer between 1 and 31
     """
-    # print(f"date string: {date_string}")
+    # check for garbage at the end of the string
     while not date_string[-1].isnumeric():
         date_string = date_string[:-1]
+    # grab the front of the string, where we expect the three-letter month to be
     month = date_string[:3]
+    # this error will come up, so we catch it
     if month == "une":
         month = "Jun"
+    # grab the back of the string to get the year
     year = date_string[-4:]
+    # try to convert the month to str(int) form, or throw an error
     try:
         month = str(time.strptime(month, "%b").tm_mon)
     except ValueError as err:
@@ -33,6 +38,7 @@ def parse_long_dates(date_string):
         print(f"Encountered ValueError on file: {date_string}")
     day = date_string.split(" ")[1]
     day = "".join(filter(str.isdigit, day))
+    # check integrity
     assert (
         year.isnumeric()
     ), f"The year is not numeric. year: {year} input: {date_string}"
@@ -98,6 +104,16 @@ def store_boe_pdfs(base_url, minutes_url):
 
 
 def store_pdf_text_to_df(path):
+    """Finds .pdf files stored at the given url and stores them within the 
+    repository for later analysis. 
+    
+    Args:
+        base_url (str): The main url for the Comptroller of Baltimore's webiste
+        minutes_url (str): The url where the function can find links to pages of 
+            pdf files organized by year
+    Returns:
+        None: This is a void function.
+    """
     pdf_paths = list(path.rglob("*.pdf"))
     text_df = pd.DataFrame(columns=["date", "page_number", "minutes"])
     for pdf_path in pdf_paths:
@@ -105,7 +121,7 @@ def store_pdf_text_to_df(path):
         minutes = ""
         pdfFileObj = open(pdf_path, "rb")
         try:
-            pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
+            pdfReader = PyPDF2.PdfFileReader(pdfFileObj, strict=False)
         except:
             print(f"An error occurred reading file {pdf_path}")
         for page in pdfReader.pages:
@@ -129,3 +145,10 @@ def store_pdf_text_to_df(path):
 
 def is_empty(_dir: Path) -> bool:
     return not bool([_ for _ in _dir.iterdir()])
+
+
+def replace_chars(val):
+    val = " ".join(val.split())
+    val = val.replace("™", "'")
+    val = val.replace("Œ", "-")
+    return val
