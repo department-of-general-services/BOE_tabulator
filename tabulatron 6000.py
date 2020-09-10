@@ -6,10 +6,18 @@ import sqlite3
 from pprint import pprint as pp
 import PyPDF2
 
-def search(text, start_date='', end_date='', db_name='boe_minutes.db'):
+default_db_name = 'boe_minutes.db'
+
+def regexp(term, text):
+    reg = re.compile(term)
+    return reg.search(text) is not None
+
+
+def search(text, start_date='', end_date='', db_name=default_db_name):
     """
     text:
         some text to search for must be supplied, otherwise the function returns "None" immediately
+        this text will be interpreted as a regular expression, so 
     
     start_date and end_date:
         start and end dates must be in the ISO date format (YYYY-MM-DD) Ex: '2010-06-23'
@@ -36,14 +44,15 @@ def search(text, start_date='', end_date='', db_name='boe_minutes.db'):
             with conn:
                 end_date = conn.execute("SELECT max(min_date) FROM minutes").fetchall()[0][0]
         # print(start_date, end_date)
-        text = f'*{text}*'  # add GLOB wildcards on either side of the search term
+
         with conn:
-            return conn.execute("SELECT filename, min_text FROM minutes WHERE min_date BETWEEN ? AND ? AND min_text GLOB ?", (start_date, end_date, text))
+            conn.create_function('REGEXP', 2, regexp)  # this adds regex functionality but seems to have to be added every time (this seems strange, will investigate)
+            return conn.execute("SELECT filename, min_text FROM minutes WHERE min_date BETWEEN ? AND ? AND min_text REGEXP ?", (start_date, end_date, text))
     except sqlite3.DatabaseError as e:
-        print(f"couldn't connect to database: {db_name}.\nError: {e}")
+        print(f"Database error with: {db_name}.\nError: {e}")
     
 
-def update_db(min_folder='BoE Minutes PDFs', db_name='boe_minutes.db'):
+def update_db(min_folder='BoE Minutes PDFs', db_name=default_db_name):
     """
     min_folder:
         folder the minutes PDFs are stored in. if the minutes folder is not in the same directory as the calling script, an absolute path is required
@@ -68,7 +77,7 @@ def update_db(min_folder='BoE Minutes PDFs', db_name='boe_minutes.db'):
             pdf_date_list.remove(date)
         except:
             pass
-    # pp(pdf_date_list)
+    pp(pdf_date_list)
     if len(pdf_date_list):  # run only if there are any updates
         min_data = create_db_row_values(file_get_list=pdf_date_list)
         # pp(len(min_data))
@@ -78,7 +87,7 @@ def update_db(min_folder='BoE Minutes PDFs', db_name='boe_minutes.db'):
             """, min_data)
 
 
-def create_and_populate_minutes_db(min_folder='BoE Minutes PDFs', db_name='boe_minutes.db'):
+def create_and_populate_minutes_db(min_folder='BoE Minutes PDFs', db_name=default_db_name):
     """
     min_folder:
         folder the minutes PDFs are stored in. if the minutes folder is not in the same directory as the calling script, an absolute path is required
@@ -141,11 +150,19 @@ def get_pdf_text(fullpath, joiner='\n'):
         the text to use to concatenate the page texts. defaults to newline character
     """
     print(f'getting text for {fullpath}')
+    replacements = [('Œ', '-'),
+                    ('ﬁ', '"'),
+                    ('ﬂ', '"'),
+                    ('™', "'"),
+                    ('Ł', '•'),
+                ]
     pdf_reader = PyPDF2.PdfFileReader(fullpath)
     pdf_text = list()
     for page in pdf_reader.pages:
         pdf_text.append(page.extractText().strip())
     pdf_text = joiner.join(pdf_text)
+    for i in replacements:
+        pdf_text = pdf_text.replace(i[0], i[1])
     return pdf_text
 
 
@@ -164,7 +181,7 @@ def get_boe_minutes(save_folder='BoE Minutes PDFs', start_dir=os.path.dirname(__
 
     base_url = "https://comptroller.baltimorecity.gov"  # because relative hrefs
     minutes_url = base_url + "/boe/meetings/minutes"
-
+        # https://comptroller.baltimorecity.gov/boe/meetings/minutes
     # because whoever wrote the BoE website didn't make it easy to scrape
     # date_regex = re.compile(r'([(January|February|March|April|May|June|July|August|September|October|November|December)]) (\d{1,2}), (\d{4})', re.IGNORECASE)
     date_regex = re.compile(r'(\w*)\s+(\d{1,2})\D*(\d{4})', re.IGNORECASE)
@@ -196,9 +213,10 @@ def get_boe_minutes(save_folder='BoE Minutes PDFs', start_dir=os.path.dirname(__
 
     # this eliminates the need to specify the years to grab since four-digit years are used consistently
     year_tags = start_soup.find_all('a', href=True, text=re.compile(r'^\d{4}$'))  # find the tags that link to the minutes for specific years
-    year_links = [base_url + tag.get('href') for tag in year_tags]  # extracting the links
+    year_links = [tag.get('href') for tag in year_tags]  # extracting the links
 
     for link in year_links:
+        print(link)
         year_page = requests.get(link)
         year_page.raise_for_status()
         soup = BS(year_page.text, 'lxml')
@@ -241,14 +259,16 @@ def get_boe_minutes(save_folder='BoE Minutes PDFs', start_dir=os.path.dirname(__
 
 
 if __name__ == '__main__':
-    # get_boe_minutes()
-    # create_and_populate_minutes_db()
+
+    get_boe_minutes()
+    create_and_populate_minutes_db()
     # update_db()
     search_term = 'Sheila Dixon'
-    results = search(search_term)  # search uses GLOB syntax and automatically adds '*' on either side of your terms
+    # print('after regexp')
+    results = search(search_term)
 
-    for result in results.fetchall():  # print the filename
-        term_index = result[1].find(search_term)
-        print(result[0]+'\n', result[1][term_index-100:term_index+100])
-        print('-'*30)
-    pass
+    if results is not None:
+        for result in results.fetchall():  # print the filename
+            term_index = result[1].find(search_term)
+            print(result[0]+'\n', result[1][term_index-100:term_index+100])
+            print('-'*30)

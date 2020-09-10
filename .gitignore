@@ -130,3 +130,11 @@ dmypy.json
 .DS_Store
 *.pdf
 .vscode/settings.json
+scratch.py
+.gitignore
+BoE Minutes PDFs
+boe_minutes.db
+db schema planning.xlsx
+~$db schema planning.xlsx
+temp.py
+.gitignore
