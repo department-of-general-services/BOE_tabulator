@@ -72,7 +72,7 @@ If you don't have Python version 3.6 or later installed on your computer. Consid
    ```
    $ jupyter notebook
    ```
-1. Open the `tabulator.ipynb` from the directory on the browser
+1. Open the `tabulator.ipynb` from the directory in the browser
 1. Run each cell of the notebook
 > **NOTE:** Running the notebook may take 10-20 minutes the first time as you download all of the pdf files from the Comptroller webpage
 
