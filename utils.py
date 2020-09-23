@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 def parse_long_dates(date_string):
-    """Extracts three simple strings representing the year, month, and day 
+    """Extracts three simple strings representing the year, month, and day
     from a date in the  in the long format like 'November 19, 2010'.
 
     Args:
@@ -50,11 +50,11 @@ def parse_long_dates(date_string):
 
 
 def store_boe_pdfs(base_url, minutes_url):
-    """Finds .pdf files stored at the given url and stores them within the 
-    repository for later analysis. 
+    """Finds .pdf files stored at the given url and stores them within the
+    repository for later analysis.
     Args:
         base_url (str): The main url for the Comptroller of Baltimore's webiste
-        minutes_url (str): The url where the function can find links to pages of 
+        minutes_url (str): The url where the function can find links to pages of
             pdf files organized by year
     Returns:
         None: This is a void function.
@@ -103,7 +103,10 @@ def store_boe_pdfs(base_url, minutes_url):
     return
 
 
-def get_boe_minutes(base_url="https://comptroller.baltimorecity.gov", minutes_url_part="/boe/meetings/minutes", save_folder='BoE Minutes PDFs', start_dir=os.path.dirname(__file__)):
+def get_boe_minutes(base_url="https://comptroller.baltimorecity.gov",
+                    minutes_url_part="/boe/meetings/minutes",
+                    save_folder='BoE Minutes PDFs',
+                    start_dir=os.path.dirname(__file__)):
     """
     base_url:
         url for the comptrollers website
@@ -114,10 +117,13 @@ def get_boe_minutes(base_url="https://comptroller.baltimorecity.gov", minutes_ur
         https://comptroller.baltimorecity.gov/boe/meetings/minutes
 
     save_folder:
-        the name of the folder used to hold the minutes PDFs, shouldn't have any slashes
+        the name of the folder used to hold the minutes PDFs,
+        shouldn't have any slashes
 
     start_dir:
-        defaults to the directory the calling script is in. used to make a full path (relative to the calling script or absolute) with save_folder
+        defaults to the directory the calling script is in. used to
+        make a full path (relative to the calling script or absolute)
+        with save_folder
     """
     # print(start_dir)  # print the directory this script is in
     os.chdir(start_dir)  # set the cwd to avoid any OS/python shenanigans
@@ -128,6 +134,16 @@ def get_boe_minutes(base_url="https://comptroller.baltimorecity.gov", minutes_ur
     # because whoever wrote the BoE website didn't make it easy to scrape
     # date_regex = re.compile(r'([(January|February|March|April|May|June|July|August|September|October|November|December)]) (\d{1,2}), (\d{4})', re.IGNORECASE)
     date_regex = re.compile(r'(\w*)\s+(\d{1,2})\D*(\d{4})', re.IGNORECASE)
+    """
+    This regex captures any long date formats
+
+    The compoents of the regex:
+        (\w*) - First capture group, one or more word chars to find month
+        \s - Space between month and date, not captured
+        (\d{1,2}) - Second capture group, one or two numbers to find date
+        \D* - Non decimal chars between date and year, not captured
+        (\d{4}) - Third capture group, string of four numbers to find year
+    """
     month_dict = {'january': '01',
                   'february': '02',
                   'march': '03',
@@ -139,8 +155,7 @@ def get_boe_minutes(base_url="https://comptroller.baltimorecity.gov", minutes_ur
                   'september': '09',
                   'october': '10',
                   'november': '11',
-                  'december': '12'
-                }
+                  'december': '12'}
 
     # this creates a dictionary containing all possible single-letter deletions of every month
     # it's used to correct for typos in the text of a link to the minutes
@@ -171,10 +186,20 @@ def get_boe_minutes(base_url="https://comptroller.baltimorecity.gov", minutes_ur
             # example filename: 'BoE Minutes 2009-04-01.pdf'
 
             try:  # most links will fit this pattern
-                file_name = 'BoE Minutes ' + file_name_re.group(3) + '-' + month_dict[file_name_re.group(1).lower()] + '-' + file_name_re.group(2).zfill(2) + '.pdf'
+                file_name = (
+                    'BoE Minutes '
+                    + file_name_re.group(3) # year
+                    + '-'
+                    + month_dict[file_name_re.group(1).lower()] # month
+                    + '-'
+                    + file_name_re.group(2).zfill(2) # day
+                    + '.pdf'
+                )
             except KeyError as e:  # this code only triggers if there's a typo in the month string
                 month_error = file_name_re.group(1).lower()
-                print(f'Error "{e}" for minutes on: "{tag.string}", regex found: {file_name_re.groups()}. Attempting typo matching...')
+                print(f'Error "{e}" for minutes on: "{tag.string}", '
+                      f'regex found: {file_name_re.groups()}. '
+                      f'Attempting typo matching...')
                 for k, v in typo_dict.items():  # this loop searches for matches among single-letter deletions
                     correct_month = False
                     if month_error in v:
@@ -182,10 +207,20 @@ def get_boe_minutes(base_url="https://comptroller.baltimorecity.gov", minutes_ur
                         break
 
                 if correct_month:  # if we found a match
-                    file_name = 'BoE Minutes ' + file_name_re.group(3) + '-' + month_dict[correct_month] + '-' + file_name_re.group(2).zfill(2) + '.pdf'
+                    file_name = (
+                        'BoE Minutes '
+                        + file_name_re.group(3) # year
+                        + '-'
+                        + month_dict[correct_month] # month
+                        + '-'
+                        + file_name_re.group(2).zfill(2) # day
+                        + '.pdf'
+                    )
                 else:
                     #  sorry, you'll have to update the regex if you hit this code
-                    print(f'Error: could not match month string {file_name_re.group(1)} in match {file_name_re.groups()}. ')
+                    print(f'Error: could not match month string '
+                          f'{file_name_re.group(1)} in '
+                          f'match {file_name_re.groups()}. ')
 
             if os.path.exists(pdf_save_dir + file_name):  # skip the download if we've already done it
                 print(f'skipping: {file_name}')
@@ -202,13 +237,13 @@ def get_boe_minutes(base_url="https://comptroller.baltimorecity.gov", minutes_ur
 
 
 def store_pdf_text_to_df(path):
-    """Finds .pdf files stored at the given url and stores them within the 
-    repository for later analysis. 
-    
+    """Finds .pdf files stored at the given url and stores them within the
+    repository for later analysis.
+
     Args:
         base_url (str): The main url for the Comptroller of Baltimore's webiste
-        minutes_url (str): The url where the function can find links to pages of 
-            pdf files organized by year
+        minutes_url (str): The url where the function can find links to pages of
+        pdf files organized by year
     Returns:
         None: This is a void function.
     """
@@ -233,7 +268,11 @@ def store_pdf_text_to_df(path):
         else:
             page_number = ""
         try:
-            row = {"date": date, "page_number": page_number, "minutes": minutes.strip()}
+            row = {
+                "date": date,
+                "page_number": page_number,
+                "minutes": minutes.strip()
+            }
             text_df = text_df.append(row, ignore_index=True)
         except ValueError:
             print(f"No date found for file {pdf_path}")
