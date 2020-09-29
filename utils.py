@@ -8,6 +8,7 @@ import PyPDF2
 from datetime import datetime
 from pathlib import Path
 
+black_test_list= ['abc', 'def',34,1.3,'super long text to trigger wrapping and get under the 80(?) char recommended line length']
 
 def parse_long_dates(date_string):
     """Extracts three simple strings representing the year, month, and day
