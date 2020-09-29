@@ -1,5 +1,5 @@
 name: test_black
-on:[push]
+on: push
 
 jobs:
   test-black:
