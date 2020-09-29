@@ -1,9 +1,8 @@
-workflow "Example Workflow" {
-  on = "push"
-  resolves = ["Lint"]
-}
+name: test_black
+on:[push]
 
-action "Lint" {
-  uses = "lgeiger/black-action@master"
-  args = ". --check"
-}
+jobs:
+  test-black:
+    runs-on: ubuntu-latest
+    uses = "lgeiger/black-action@master"
+    args = ". --check"
