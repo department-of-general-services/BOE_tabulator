@@ -4,5 +4,5 @@ on:[push]
 jobs:
   test-black:
     runs-on: ubuntu-latest
-    uses = "lgeiger/black-action@master"
-    args = ". --check"
+    uses: "lgeiger/black-action@master"
+    args: ". --check"
