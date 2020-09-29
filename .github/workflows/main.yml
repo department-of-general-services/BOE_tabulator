@@ -5,5 +5,4 @@ jobs:
   test-black:
     runs-on: ubuntu-latest
     steps:
-      - uses: "lgeiger/black-action@master"
-      - args: ". --check"
+      - uses: "lgeiger/black-action@master . --check"
