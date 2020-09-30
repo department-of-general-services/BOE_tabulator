@@ -66,6 +66,11 @@ If you don't have Python version 3.6 or later installed on your computer. Consid
    ```
    $ pip install -r requirements.txt
    ```
+1. Run the tests and make sure everything passes
+   ```
+   $ pytest
+   > =============== XX passed in XXs ===============
+   ```
 
 ### Fetching the Data
 1. Open up jupyter notebooks
