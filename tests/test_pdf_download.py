@@ -1,4 +1,4 @@
-
+from .data.pdf_download_data import HTML_TEXT, YEAR_LINKS
 
 class TestCheckPageSetup:
     """Tests check_page_setup() which confirms that the current layout of
