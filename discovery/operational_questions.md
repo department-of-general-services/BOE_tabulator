@@ -9,7 +9,9 @@ This document will catalogue the questions and problems that can be answered/sol
 	- Prequalification of contractors
 	- Prequalification of architects and engineers
 	- Settlement agreement and release
-    
+
+### OPTIONS/CONDEMNATION/QUICK-TAKES
+
 ## Questions
 1. The phrase "REGULAR MEETING" usually apears at the top of the document, before the names of the 5 board members.
     - Is this always the case?
