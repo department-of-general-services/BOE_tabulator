@@ -3,6 +3,7 @@
 This document will catalogue the questions and problems that can be answered/solved using data from the [minutes of the Board of Estimates](https://comptroller.baltimorecity.gov/boe/meetings/minutes).
 
 ## Assumptions
+
 ### BOARDS AND COMMISSIONS
 - The phrase "BOARDS AND COMMISSIONS" opens a section that features
 	- Prequalification of contractors
