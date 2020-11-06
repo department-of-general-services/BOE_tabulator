@@ -1,25 +1,40 @@
+import pytest
+import requests
+from bs4 import BeautifulSoup
+from pprint import pprint
+
 from .data.pdf_download_data import HTML_TEXT, YEAR_LINKS
+
+from bike_rack.check_page_setup import check_page_setup
+
 
 class TestCheckPageSetup:
     """Tests check_page_setup() which confirms that the current layout of
     the BOE page still matches the expected layout
     """
 
-    def test_boe_link(self):
-        """Tests that the link supplied directs to BOE meetings page of the
-        Comptroller website
-
-        TEST DATA
-        - N/A
-
-        TEST SETUP
-        - N/A
-
-        ASSERTIONS
-        - assert that the response from hitting the page is 200
-        - assert that the page contains "Minutes" in the page title
+    @pytest.mark.parametrize(
+        'url, expected',
+        [('https://comptroller.baltimorecity.gov/boe/meetings/minutes',
+          {'request': 'pass',
+           # 'html_parsing': 'pass',
+           'error_message': None}),
+         ('https://comptroller.baltimorecity.gov/boe/fake-path',
+          {'request': 'fail',
+           # 'html_parsing': 'fail',
+           'error_message': 'Not Found'})]
+    )
+    def test_check_page_setup(self, url, expected):
+        """Tests check_page_setup() with several different urls
         """
-        assert 1
+
+        checks = check_page_setup(url)
+
+        print('EXPECTED')
+        pprint(expected)
+        print('OUTPUT')
+        pprint(checks)
+        assert checks == expected
 
     def test_year_div(self):
         """Tests that the div containing the links to the minutes page for
