@@ -152,7 +152,32 @@ def is_empty(_dir: Path) -> bool:
 
 
 def replace_chars(val):
-    val = " ".join(val.split())
-    val = val.replace("™", "'")
-    val = val.replace("Œ", "-")
-    return val
+    replacements = [('Œ', '-'),
+                    ('ﬁ', '"'),
+                    ('ﬂ', '"'),
+                    ('™', "'"),
+                    ('Ł', '•'),
+                    (',', "'"),
+                    ('Š', '-'),
+                    ('€', ' '),
+                    ('¬', '-'),
+                    ('–', '…'),
+                    ('‚', "'"),
+                    ('Ž', '™'),
+                    ('˚', 'fl'),
+                    ('˜', 'fi'),
+                    ('˛', 'ff'),
+                    ('˝', 'ffi'),
+                    ('š', '—'),
+                    ('ü', 'ti'),
+                    ('î', 'í'),
+                    ('è', 'c'),
+                    ('ë', 'e'),
+                    ('Ð', '–'),
+                    ('Ò', '"'),
+                    ('Ó', '"'),
+                    ('Õ', "'"),
+                ]
+    for i in replacements:
+        text = text.replace(i[0], i[1])
+    return text
