@@ -181,3 +181,20 @@ def replace_chars(val):
     for i in replacements:
         text = text.replace(i[0], i[1])
     return text
+
+
+def del_dir_contents(root):
+    """Convenience function so we don't have to empy out pdf_dir by hand 
+    during testing. 
+    
+    Removes all 
+    """
+    for p in root.iterdir():
+        if p.is_dir():
+            rmtree(p)
+        else:
+            p.unlink()
+    for p in root.iterdir():
+        if p.is_dir():
+            p.rmdir()
+    return
