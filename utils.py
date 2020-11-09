@@ -204,6 +204,13 @@ def del_dir_contents(root):
 
 
 def get_year_links(start_soup):
+    """
+    Args:
+        start_soup (BeautifulSoup object): the beautifulsoup object that parses the "landing page" for the minutes links
+
+    Returns:
+        year_links (dict): dictionary with the years (2009, 2010, ..., current year) as keys and relative links as values
+    """
     # this eliminates the need to specify the years to grab since four-digit years are used consistently
     year_tags = start_soup.find_all('a', href=True, text=re.compile(r'^20\d{2}$'))  # find the tags that link to the minutes for specific years
     year_links = {tag.string: tag.get('href') for tag in year_tags}  # extracting the links
