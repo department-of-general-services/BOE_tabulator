@@ -151,7 +151,7 @@ def is_empty(_dir: Path) -> bool:
     return not bool([_ for _ in _dir.iterdir()])
 
 
-def replace_chars(val):
+def replace_chars(text):
     replacements = [('Œ', '-'),
                     ('ﬁ', '"'),
                     ('ﬂ', '"'),
