@@ -191,7 +191,7 @@ def del_dir_contents(root):
     """
     for p in root.iterdir():
         if p.is_dir():
-            rmtree(p)
+            del_dir_contents(p)
         else:
             p.unlink()
     for p in root.iterdir():
