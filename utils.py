@@ -68,7 +68,10 @@ def store_boe_pdfs(base_url, minutes_url):
     if not pdf_dir.is_dir():
         pdf_dir.mkdir(parents=True, exist_ok=False)
 
-    for year in range(2009, 2021):
+
+    year_links = get_year_links(soup)
+
+    for year in year_links.keys():
         # make a directory for the files
         save_path = pdf_dir / str(year)
         save_path.mkdir(parents=True, exist_ok=True)
@@ -151,8 +154,65 @@ def is_empty(_dir: Path) -> bool:
     return not bool([_ for _ in _dir.iterdir()])
 
 
-def replace_chars(val):
-    val = " ".join(val.split())
-    val = val.replace("™", "'")
-    val = val.replace("Œ", "-")
-    return val
+def replace_chars(text):
+    replacements = [('Œ', '-'),
+                    ('ﬁ', '"'),
+                    ('ﬂ', '"'),
+                    ('™', "'"),
+                    ('Ł', '•'),
+                    (',', "'"),
+                    ('Š', '-'),
+                    ('€', ' '),
+                    ('¬', '-'),
+                    ('–', '…'),
+                    ('‚', "'"),
+                    ('Ž', '™'),
+                    ('˚', 'fl'),
+                    ('˜', 'fi'),
+                    ('˛', 'ff'),
+                    ('˝', 'ffi'),
+                    ('š', '—'),
+                    ('ü', 'ti'),
+                    ('î', 'í'),
+                    ('è', 'c'),
+                    ('ë', 'e'),
+                    ('Ð', '–'),
+                    ('Ò', '"'),
+                    ('Ó', '"'),
+                    ('Õ', "'"),
+                ]
+    for i in replacements:
+        text = text.replace(i[0], i[1])
+    return text
+
+
+def del_dir_contents(root):
+    """Convenience function so we don't have to empy out pdf_dir by hand 
+    during testing. 
+    
+    Removes all 
+    """
+    for p in root.iterdir():
+        if p.is_dir():
+            del_dir_contents(p)
+        else:
+            p.unlink()
+    for p in root.iterdir():
+        if p.is_dir():
+            p.rmdir()
+    return
+
+
+def get_year_links(start_soup):
+    """
+    Args:
+        start_soup (BeautifulSoup object): the beautifulsoup object that parses the "landing page" for the minutes links
+
+    Returns:
+        year_links (dict): dictionary with the years (2009, 2010, ..., current year) as keys and relative links as values
+    """
+    # this eliminates the need to specify the years to grab since four-digit years are used consistently
+    year_tags = start_soup.find_all('a', href=True, text=re.compile(r'^20\d{2}$'))  # find the tags that link to the minutes for specific years
+    year_links = {tag.string: tag.get('href') for tag in year_tags}  # extracting the links
+
+    return year_links
