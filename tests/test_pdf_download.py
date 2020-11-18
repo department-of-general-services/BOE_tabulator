@@ -42,38 +42,6 @@ class TestCheckPageSetup:
         if 'html_parsing' in checks['pass']:
             assert soup is not None
 
-    def test_year_div(self):
-        """Tests that the div containing the links to the minutes page for
-        each year exists on the page
-
-        TEST DATA
-        - N/A
-
-        TEST DATA
-        - N/A
-
-        ASSERTIONS
-        - assert that a div with class 'field field-name-body'
-        - assert that there is a <p> tag with links that follow a year format
-        """
-        assert 1
-
-    def test_minute_div(self):
-        """Tests that the div containing the links to each meeting's minutes
-        exists on the page
-
-        TEST DATA
-        - N/A
-
-        TEST DATA
-        - N/A
-
-        ASSERTIONS
-        - assert that a div with class 'field field-name-body'
-        - assert that there is a <p> tag with links that follow the
-          meeting link format
-        """
-        assert 1
 
 class TestGetYearLinks:
     """Tests get_year_links() that retrieves the links to the pages that
