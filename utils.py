@@ -220,6 +220,14 @@ def get_year_links(start_soup):
 
 
 def month_match_lev(text):
+    """
+    Args: 
+        text (str): the misspelled month string
+
+    Returns:
+        best_match (str): the month string that best matches the misspelled input
+        best_score (int): the Levenshtein distance between text and best_match
+    """
     text = text.lower()
     months = [
         'january',
