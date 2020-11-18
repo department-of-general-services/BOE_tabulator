@@ -7,6 +7,7 @@ import re
 import PyPDF2
 from datetime import datetime
 import os
+from enchant.utils import levenshtein
 
 
 def parse_long_dates(date_string):
@@ -216,3 +217,30 @@ def get_year_links(start_soup):
     year_links = {tag.string: tag.get('href') for tag in year_tags}  # extracting the links
 
     return year_links
+
+
+def month_match_lev(text):
+    text = text.lower()
+    months = [
+        'january',
+        'february',
+        'march',
+        'april',
+        'may',
+        'june',
+        'july',
+        'august',
+        'september',
+        'october',
+        'november',
+        'december']
+    best_match = ''
+    best_score = 9999  # lower scores are better
+    for i in months:
+        # lev dist == num changes to make text into i
+        score = levenshtein(text, i)  
+        if score < best_score:
+            best_score = score
+            best_match = i
+
+    return best_match, best_score
