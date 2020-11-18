@@ -5,12 +5,13 @@ from pprint import pprint
 
 from .data.pdf_download_data import HTML_TEXT, YEAR_LINKS
 
-from bike_rack.check_page_setup import check_page_setup
+from bike_rack.check_page_setup import check_and_parse_page
 
 
-class TestCheckPageSetup:
-    """Tests check_page_setup() which confirms that the current layout of
-    the BOE page still matches the expected layout
+class TestCheckAndParsePage:
+    """Tests check_and_parse_page() which confirms that the current layout of
+    the BOE page still matches the expected layout and returns a BeautifulSoup
+    object of the parsed html
     """
 
     @pytest.mark.parametrize(
@@ -24,12 +25,12 @@ class TestCheckPageSetup:
            'fail': ['request'],
            'error_message': 'Not Found'})]
     )
-    def test_check_page_setup(self, url, expected):
-        """Tests check_page_setup() with several different urls
+    def test_check_and_parse_page(self, url, expected):
+        """Tests check_and_parse_page() with several different urls
         """
 
         # runs function on input url and captures return values
-        checks, soup = check_page_setup(url)
+        checks, soup = check_and_parse_page(url)
 
         # checks that the checks returned by the function match expected
         print('EXPECTED')

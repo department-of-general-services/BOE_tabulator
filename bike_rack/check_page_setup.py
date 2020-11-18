@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-def check_page_setup(url):
+def check_and_parse_page(url):
     response = requests.get(url)
     checks = {'pass': [],
               'fail': []}
