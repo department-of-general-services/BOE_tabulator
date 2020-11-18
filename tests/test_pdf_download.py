@@ -16,25 +16,31 @@ class TestCheckPageSetup:
     @pytest.mark.parametrize(
         'url, expected',
         [('https://comptroller.baltimorecity.gov/boe/meetings/minutes',
-          {'request': 'pass',
-           # 'html_parsing': 'pass',
+          {'pass': ['request', 'html_parsing'],
+           'fail': [],
            'error_message': None}),
          ('https://comptroller.baltimorecity.gov/boe/fake-path',
-          {'request': 'fail',
-           # 'html_parsing': 'fail',
+          {'pass': [],
+           'fail': ['request'],
            'error_message': 'Not Found'})]
     )
     def test_check_page_setup(self, url, expected):
         """Tests check_page_setup() with several different urls
         """
 
-        checks = check_page_setup(url)
+        # runs function on input url and captures return values
+        checks, soup = check_page_setup(url)
 
+        # checks that the checks returned by the function match expected
         print('EXPECTED')
         pprint(expected)
         print('OUTPUT')
         pprint(checks)
         assert checks == expected
+
+        # checks that the soupified page is returned
+        if 'html_parsing' in checks['pass']:
+            assert soup is not None
 
     def test_year_div(self):
         """Tests that the div containing the links to the minutes page for
