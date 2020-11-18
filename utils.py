@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import PyPDF2
 from datetime import datetime
-from pathlib import Path
+import os
 
 
 def parse_long_dates(date_string):
