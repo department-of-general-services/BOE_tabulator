@@ -9,6 +9,20 @@ from datetime import datetime
 import os
 from enchant.utils import levenshtein
 
+# months is here because it is used in multiple places
+months = (
+        'january',
+        'february',
+        'march',
+        'april',
+        'may',
+        'june',
+        'july',
+        'august',
+        'september',
+        'october',
+        'november',
+        'december')
 
 def parse_long_dates(date_string):
     """Extracts three simple strings representing the year, month, and day
@@ -21,22 +35,34 @@ def parse_long_dates(date_string):
         month (str): The month as a string representing an integer between 1 and 12
         day (str): The day as a string representing an integer between 1 and 31
     """
+    date_regex = re.compile(r'(\w*)\s+(\d{1,2})\D*(\d{4})', re.IGNORECASE)
+    """
+    This regex captures any long date formats
+
+    The components of the regex:
+        (\w*) - First capture group, one or more word chars to find month
+        \s - Space between month and date, not captured
+        (\d{1,2}) - Second capture group, one or two numbers to find date
+        \D* - Non decimal chars between date and year, not captured
+        (\d{4}) - Third capture group, string of four numbers to find year
+    """
+    date_re = date_regex.search(date_string)
     # check for garbage at the end of the string
     while not date_string[-1].isnumeric():
         date_string = date_string[:-1]
-    # grab the front of the string, where we expect the three-letter month to be
-    month = date_string[:3]
-    # this error will come up, so we catch it
-    if month == "une":
-        month = "Jun"
+    
+    # grabs the month.lower() from the regex match of the date_string
+    month_str = date_re.group(1).lower()
+    if month_str in months:  # if month was spelled correctly
+        month = str(months.index(month_str)+1).zfill(2)
+    else:  # if month wasn't spelled correctly
+        # score is currently unused but present for compatibility
+        month_str, score = month_match_lev(month_str)
+        month = str(months.index(month_str)+1).zfill(2)
+    
     # grab the back of the string to get the year
     year = date_string[-4:]
-    # try to convert the month to str(int) form, or throw an error
-    try:
-        month = str(time.strptime(month, "%b").tm_mon)
-    except ValueError as err:
-        print(f"month: {month}")
-        print(f"Encountered ValueError on file: {date_string}")
+    
     day = date_string.split(" ")[1]
     day = "".join(filter(str.isdigit, day))
     # check integrity
@@ -229,19 +255,6 @@ def month_match_lev(text):
         best_score (int): the Levenshtein distance between text and best_match
     """
     text = text.lower()
-    months = [
-        'january',
-        'february',
-        'march',
-        'april',
-        'may',
-        'june',
-        'july',
-        'august',
-        'september',
-        'october',
-        'november',
-        'december']
     best_match = ''
     best_score = 9999  # lower scores are better
     for i in months:
