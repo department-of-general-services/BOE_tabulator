@@ -2,7 +2,7 @@ import pytest
 import requests
 from bs4 import BeautifulSoup
 from pprint import pprint
-from utils import month_match_lev
+from utils import month_match_lev, parse_long_dates, lev
 
 from .data.pdf_download_data import HTML_TEXT, YEAR_LINKS
 
@@ -141,36 +141,35 @@ class TestGetParseMeetingDate:
     the anchor tags returned by the get_meeting_links() function
     """
 
-    def test_standard_date_format(self):
-        """Tests the parsing of the standard date format in the anchor tags
+    @pytest.mark.parametrize(
+        'word_a,word_b,expected_distance',
+        [('possible', 'impossible', 2),
+         ('possible', 'sorry', 7),
+         ('January', 'Jaunary', 2),
+         ('June', 'une', 1)]
+    )
+    def test_levenshtein_distance(self, word_a, word_b, expected_distance):
+        """Tests the Levenshtein distance algorithm created as a helper
+        function for parse_long_date"""
 
-        TEST DATA
-        - A list of anchor tag that each contains the meeting date
-          in a standard format
+        distance = lev(word_a, word_b)
+        assert distance == expected_distance
 
-        TEST SETUP
-        - N/A
-
-        ASSERTIONS
-        - assert that the long date is parsed into the correct format
+    @pytest.mark.parametrize(
+        'input_date,out_year,out_month,out_day',
+        [('November 10, 2020', '20','11','2020'), # checks standard date
+         ('April 6, 2020', '2020','04','06'), # checks for zero padding
+         ('une 17, 2019', '2019','06','17'), # checks for single letter deletion
+         ('Mrach 2, 2018', '2018','03','02')] # checks for swapped letters
+    )
+    def test_parse_long_dates(self, input_date, out_year, out_month, out_day):
+        """Tests parse_long_dates() against the standard date format
+        plus all of the edge cases we've seen
         """
-        assert 1
+        year, month, day = parse_long_dates(input_date)
 
-    def test_single_letter_deletions(self):
-        """Tests the parsing of dates in which the anchor tag is missing
-        a letter of the month, e.g. 'une' instead of 'June'
-
-        TEST DATA
-        - A list of anchor tag that each contains the meeting date
-          in a standard format
-
-        TEST SETUP
-        - Modify the text of the anchor tags to remove a single letter
-
-        ASSERTIONS
-        - assert that modified anchor tags are parsed correctly
-        """
-        assert 1
+        assert out_year == year
+        assert out_month == month
 
 class TestCheckFileList:
     """Tests check_file_list() which checks the list of downloaded pdfs
@@ -274,13 +273,13 @@ class TestDownloadPDF:
         assert 1
 
 class TestMonthSpellCheck:
-    """Tests the month misspelling detection. 
+    """Tests the month misspelling detection.
     This test also specifically *excludes* the misspellings of:
       'juny'
       'jule'
     because both of these misspellings have Levenshtein distances of 1 to both "june" and "july" and it's not possible to determine the correct month without a lot of extra work. If we run into these misspellings it will probably be easier to catch that specific error than rework the function(s) to make the right call.
     """
-    
+
     def test_single_deletions(self):
       """Test for correct detection of months with single-letter deletions.
       """
@@ -289,7 +288,7 @@ class TestMonthSpellCheck:
         deletions[month] = list()
         for j in range(len(month)):
             deletions[month].append(month[:j] + month[j+1:])
-      
+
       for month, month_dels in deletions.items():
         for deletion in month_dels:
           match, score = month_match_lev(deletion)

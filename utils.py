@@ -50,7 +50,7 @@ def parse_long_dates(date_string):
     # check for garbage at the end of the string
     while not date_string[-1].isnumeric():
         date_string = date_string[:-1]
-    
+
     # grabs the month.lower() from the regex match of the date_string
     month_str = date_re.group(1).lower()
     if month_str in months:  # if month was spelled correctly
@@ -59,10 +59,10 @@ def parse_long_dates(date_string):
         # score is currently unused but present for compatibility
         month_str, score = month_match_lev(month_str)
         month = str(months.index(month_str)+1).zfill(2)
-    
+
     # grab the back of the string to get the year
     year = date_string[-4:]
-    
+
     day = date_string.split(" ")[1]
     day = "".join(filter(str.isdigit, day))
     # check integrity
@@ -214,10 +214,10 @@ def replace_chars(text):
 
 
 def del_dir_contents(root):
-    """Convenience function so we don't have to empy out pdf_dir by hand 
-    during testing. 
-    
-    Removes all 
+    """Convenience function so we don't have to empy out pdf_dir by hand
+    during testing.
+
+    Removes all
     """
     for p in root.iterdir():
         if p.is_dir():
@@ -253,11 +253,11 @@ def lev(token1, token2):
 
     for t2 in range(len(token2) + 1):
         distances[0][t2] = t2
-        
+
     a = 0
     b = 0
     c = 0
-    
+
     for t1 in range(1, len(token1) + 1):
         for t2 in range(1, len(token2) + 1):
             if (token1[t1-1] == token2[t2-1]):
@@ -266,7 +266,7 @@ def lev(token1, token2):
                 a = distances[t1][t2 - 1]
                 b = distances[t1 - 1][t2]
                 c = distances[t1 - 1][t2 - 1]
-                
+
                 if (a <= b and a <= c):
                     distances[t1][t2] = a + 1
                 elif (b <= a and b <= c):
@@ -279,7 +279,7 @@ def lev(token1, token2):
 
 def month_match_lev(text):
     """
-    Args: 
+    Args:
         text (str): the misspelled month string
 
     Returns:
@@ -291,7 +291,7 @@ def month_match_lev(text):
     best_score = 9999  # lower scores are better
     for i in months:
         # lev dist == num changes to make text into i
-        score = lev(text, i)  
+        score = lev(text, i)
         if score < best_score:
             best_score = score
             best_match = i
