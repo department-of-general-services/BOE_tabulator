@@ -35,7 +35,7 @@ def parse_long_dates(date_string):
         month (str): The month as a string representing an integer between 1 and 12
         day (str): The day as a string representing an integer between 1 and 31
     """
-    date_regex = re.compile(r'(\w*)\s+(\d{1,2})\D*(\d{4})', re.IGNORECASE)
+    date_regex = re.compile(r'([\w]*)\s+(\d{1,2})\D*(\d{4})', re.IGNORECASE)
     """
     This regex captures any long date formats
 
@@ -47,25 +47,27 @@ def parse_long_dates(date_string):
         (\d{4}) - Third capture group, string of four numbers to find year
     """
     date_re = date_regex.search(date_string)
+    if date_re is None:
+        return f"'{date_string}' is not a parseable date"
     # check for garbage at the end of the string
     while not date_string[-1].isnumeric():
         date_string = date_string[:-1]
 
     # grabs the month.lower() from the regex match of the date_string
     month_str = date_re.group(1).lower()
-    if month_str in months:  # if month was spelled correctly
-        month = str(months.index(month_str)+1).zfill(2)
-    else:  # if month wasn't spelled correctly
-        # score is currently unused but present for compatibility
-        month_str, score = month_match_lev(month_str)
-        month = str(months.index(month_str)+1).zfill(2)
+    month_str, score = month_match_lev(month_str)
+    month = str(months.index(month_str)+1).zfill(2)
 
     # grab the back of the string to get the year
-    year = date_string[-4:]
+    year = date_re.group(3) # grabs year from third capture group in regex
+    day = date_re.group(2) # grabs day from second capture group in regex
 
-    day = date_string.split(" ")[1]
-    day = "".join(filter(str.isdigit, day))
+    # converts year and day to string
+    year = str(year)
+    day = str(day).zfill(2)
+
     # check integrity
+    '''
     assert (
         year.isnumeric()
     ), f"The year is not numeric. year: {year} input: {date_string}"
@@ -73,7 +75,8 @@ def parse_long_dates(date_string):
         month.isnumeric()
     ), f"The month is not numeric. month: {month} input: {date_string}"
     assert day.isnumeric(), f"The day is not numeric. day: {day} input: {date_string}"
-    return year, month, day
+    '''
+    return '_'.join([year, month, day])
 
 
 def store_boe_pdfs(base_url, minutes_url):
@@ -121,8 +124,8 @@ def store_boe_pdfs(base_url, minutes_url):
             )
             # handle cases where the date is written out in long form
             if any(char.isdigit() for char in pdf_html_text):
-                pdf_year, pdf_month, pdf_day = parse_long_dates(pdf_html_text)
-                pdf_filename = "_".join([pdf_year, pdf_month, pdf_day]) + ".pdf"
+                pdf_date = parse_long_dates(pdf_html_text)
+                pdf_filename = pdf_date + ".pdf"
                 try:
                     with open(save_path / pdf_filename, "wb") as f:
                         f.write(pdf_file.content)

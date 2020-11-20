@@ -156,20 +156,34 @@ class TestGetParseMeetingDate:
         assert distance == expected_distance
 
     @pytest.mark.parametrize(
-        'input_date,out_year,out_month,out_day',
-        [('November 10, 2020', '20','11','2020'), # checks standard date
-         ('April 6, 2020', '2020','04','06'), # checks for zero padding
-         ('une 17, 2019', '2019','06','17'), # checks for single letter deletion
-         ('Mrach 2, 2018', '2018','03','02')] # checks for swapped letters
+        'input_date,output_date',
+        [('November 10, 2020', '2020_11_10'), # checks standard date
+         ('April 6, 2020', '2020_04_06'), # checks for zero padding
+         ('une 17, 2019', '2019_06_17'), # checks for single letter deletion
+         ('Mrach 2, 2018', '2018_03_02')] # checks for swapped letters
     )
-    def test_parse_long_dates(self, input_date, out_year, out_month, out_day):
+    def test_parse_long_dates(self, input_date, output_date):
         """Tests parse_long_dates() against the standard date format
         plus all of the edge cases we've seen
         """
-        year, month, day = parse_long_dates(input_date)
+        date = parse_long_dates(input_date)
 
-        assert out_year == year
-        assert out_month == month
+        print(f'date {date}')
+
+        assert date == output_date
+
+
+    @pytest.mark.parametrize(
+        'input_date,error_message',
+        [(' ', "' ' is not a parseable date" )] # checks whitespace links
+    )
+    def test_fail_on_unparseable_date(self, input_date, error_message):
+        """Tests parse_long_dates() against the standard date format
+        plus all of the edge cases we've seen
+        """
+        output = parse_long_dates(input_date)
+
+        assert output == error_message
 
 class TestCheckFileList:
     """Tests check_file_list() which checks the list of downloaded pdfs
