@@ -117,15 +117,17 @@ def store_boe_pdfs(base_url, minutes_url):
                 link.get_text().strip().encode("ascii", "ignore").decode("utf-8")
             )
             # handle cases where the date is written out in long form
-            if any(char.isdigit() for char in pdf_html_text):
-                parsed, pdf_date = parse_long_dates(pdf_html_text)
-                pdf_filename = pdf_date + ".pdf"
-                try:
-                    with open(save_path / pdf_filename, "wb") as f:
-                        f.write(pdf_file.content)
-                    total_counter += 1
-                except TypeError as err:
-                    print(f"an error occurred with path {pdf_location}: {err}")
+            parsed, pdf_date = parse_long_dates(pdf_html_text)
+            if not parsed:
+                print(pdf_date) # error message
+                continue
+            pdf_filename = pdf_date + ".pdf"
+            try:
+                with open(save_path / pdf_filename, "wb") as f:
+                    f.write(pdf_file.content)
+                total_counter += 1
+            except TypeError as err:
+                print(f"an error occurred with path {pdf_location}: {err}")
     print(f"Wrote {total_counter} .pdf files to local repo.")
     return
 
