@@ -70,25 +70,6 @@ class TestGetYearLinks:
         assert output == expected
 
 
-    def test_exclude_non_year_links(self):
-        """Tests the exclusion of other anchor tags on the page that match a
-        format similar to that of the links for each year of minutes
-
-        TEST DATA
-        - A sample of the html scraped from a particular page
-        - A list of anchor tags for each year in the sample html
-
-        TEST SETUP
-        - Add an anchor tag that matches the format of the year link to some
-          part of the sample HTML data outside the div where year links are
-          currently found
-
-        ASSERTIONS
-        - assert that the scraped links exclude the anchor tag added during
-          the test setup
-        """
-        assert 1
-
 class TestGetMeetingLinks:
     """Tests get_meeting_links() which retrieves all of the meeting links
     from the page that lists the BOE minutes for a given year
