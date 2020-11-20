@@ -7,7 +7,7 @@ import re
 import PyPDF2
 from datetime import datetime
 import os
-from numpy as np
+import numpy as np
 
 # months is here because it is used in multiple places
 months = (
