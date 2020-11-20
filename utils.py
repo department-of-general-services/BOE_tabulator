@@ -35,7 +35,12 @@ def parse_long_dates(date_string):
         month (str): The month as a string representing an integer between 1 and 12
         day (str): The day as a string representing an integer between 1 and 31
     """
+
+
     date_regex = re.compile(r'([\w]*)\s+(\d{1,2})\D*(\d{4})', re.IGNORECASE)
+    date_re = date_regex.search(date_string)
+    if date_re is None:
+        return False, f"'{date_string}' is not a parseable date"
     """
     This regex captures any long date formats
 
@@ -46,9 +51,8 @@ def parse_long_dates(date_string):
         \D* - Non decimal chars between date and year, not captured
         (\d{4}) - Third capture group, string of four numbers to find year
     """
-    date_re = date_regex.search(date_string)
-    if date_re is None:
-        return f"'{date_string}' is not a parseable date"
+    
+
     # check for garbage at the end of the string
     while not date_string[-1].isnumeric():
         date_string = date_string[:-1]
@@ -66,17 +70,7 @@ def parse_long_dates(date_string):
     year = str(year)
     day = str(day).zfill(2)
 
-    # check integrity
-    '''
-    assert (
-        year.isnumeric()
-    ), f"The year is not numeric. year: {year} input: {date_string}"
-    assert (
-        month.isnumeric()
-    ), f"The month is not numeric. month: {month} input: {date_string}"
-    assert day.isnumeric(), f"The day is not numeric. day: {day} input: {date_string}"
-    '''
-    return '_'.join([year, month, day])
+    return True, '_'.join([year, month, day])
 
 
 def store_boe_pdfs(base_url, minutes_url):
@@ -124,7 +118,7 @@ def store_boe_pdfs(base_url, minutes_url):
             )
             # handle cases where the date is written out in long form
             if any(char.isdigit() for char in pdf_html_text):
-                pdf_date = parse_long_dates(pdf_html_text)
+                parsed, pdf_date = parse_long_dates(pdf_html_text)
                 pdf_filename = pdf_date + ".pdf"
                 try:
                     with open(save_path / pdf_filename, "wb") as f:

@@ -166,11 +166,12 @@ class TestGetParseMeetingDate:
         """Tests parse_long_dates() against the standard date format
         plus all of the edge cases we've seen
         """
-        date = parse_long_dates(input_date)
+        parsed, date = parse_long_dates(input_date)
 
         print(f'date {date}')
 
         assert date == output_date
+        assert parsed
 
 
     @pytest.mark.parametrize(
@@ -181,8 +182,9 @@ class TestGetParseMeetingDate:
         """Tests parse_long_dates() against the standard date format
         plus all of the edge cases we've seen
         """
-        output = parse_long_dates(input_date)
+        parsed, output = parse_long_dates(input_date)
 
+        assert not parsed
         assert output == error_message
 
 class TestCheckFileList:
