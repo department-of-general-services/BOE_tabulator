@@ -6,6 +6,7 @@ from pprint import pprint
 from .data.pdf_download_data import HTML_TEXT, YEAR_LINKS
 
 from bike_rack.check_page_setup import check_and_parse_page
+from utils import get_year_links
 
 
 class TestCheckAndParsePage:
@@ -52,37 +53,22 @@ class TestGetYearLinks:
     def test_get_year_links(self):
         """Tests the function that retrieves the list of links for each page
         on the Comptroller website that corresponds to a year of BOE meetings
-
-        TEST DATA
-        - A sample of the html scraped from a particular page
-        - A known list of year links from the BOE page
-
-        TEST SETUP
-        - N/A
-
-        ASSERTIONS
-        - assert that the scraped links matches the list of known links
         """
-        assert 1
+        # parses sample html for input to get_year_links() function
+        soup = BeautifulSoup(HTML_TEXT, 'html.parser')
+        expected = YEAR_LINKS
 
-    def test_exclude_non_year_links(self):
-        """Tests the exclusion of other anchor tags on the page that match a
-        format similar to that of the links for each year of minutes
+        # runs get_year_links() function and captures output
+        output = get_year_links(soup)
 
-        TEST DATA
-        - A sample of the html scraped from a particular page
-        - A list of anchor tags for each year in the sample html
+        # checks that the output of get_year_links matches the
+        # expected list of annual links from the sample html
+        print('EXPECTED')
+        pprint(expected)
+        print('OUTPUT')
+        pprint(output)
+        assert output == expected
 
-        TEST SETUP
-        - Add an anchor tag that matches the format of the year link to some
-          part of the sample HTML data outside the div where year links are
-          currently found
-
-        ASSERTIONS
-        - assert that the scraped links exclude the anchor tag added during
-          the test setup
-        """
-        assert 1
 
 class TestGetMeetingLinks:
     """Tests get_meeting_links() which retrieves all of the meeting links
