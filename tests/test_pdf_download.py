@@ -2,12 +2,27 @@ import pytest
 import requests
 from bs4 import BeautifulSoup
 from pprint import pprint
+from utils import month_match_lev, parse_long_dates, lev
 
 from .data.pdf_download_data import HTML_TEXT, YEAR_LINKS
 
 from bike_rack.check_page_setup import check_and_parse_page
 from utils import get_year_links
 
+alphabet = 'abcdefghijklmnopqrstuvwxyz'
+months = [
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december']
 
 class TestCheckAndParsePage:
     """Tests check_and_parse_page() which confirms that the current layout of
@@ -112,36 +127,51 @@ class TestGetParseMeetingDate:
     the anchor tags returned by the get_meeting_links() function
     """
 
-    def test_standard_date_format(self):
-        """Tests the parsing of the standard date format in the anchor tags
+    @pytest.mark.parametrize(
+        'word_a,word_b,expected_distance',
+        [('possible', 'impossible', 2),
+         ('possible', 'sorry', 7),
+         ('January', 'Jaunary', 2),
+         ('June', 'une', 1)]
+    )
+    def test_levenshtein_distance(self, word_a, word_b, expected_distance):
+        """Tests the Levenshtein distance algorithm created as a helper
+        function for parse_long_date"""
 
-        TEST DATA
-        - A list of anchor tag that each contains the meeting date
-          in a standard format
+        distance = lev(word_a, word_b)
+        assert distance == expected_distance
 
-        TEST SETUP
-        - N/A
-
-        ASSERTIONS
-        - assert that the long date is parsed into the correct format
+    @pytest.mark.parametrize(
+        'input_date,output_date',
+        [('November 10, 2020', '2020_11_10'), # checks standard date
+         ('April 6, 2020', '2020_04_06'), # checks for zero padding
+         ('une 17, 2019', '2019_06_17'), # checks for single letter deletion
+         ('Mrach 2, 2018', '2018_03_02')] # checks for swapped letters
+    )
+    def test_parse_long_dates(self, input_date, output_date):
+        """Tests parse_long_dates() against the standard date format
+        plus all of the edge cases we've seen
         """
-        assert 1
+        parsed, date = parse_long_dates(input_date)
 
-    def test_single_letter_deletions(self):
-        """Tests the parsing of dates in which the anchor tag is missing
-        a letter of the month, e.g. 'une' instead of 'June'
+        print(f'date {date}')
 
-        TEST DATA
-        - A list of anchor tag that each contains the meeting date
-          in a standard format
+        assert date == output_date
+        assert parsed
 
-        TEST SETUP
-        - Modify the text of the anchor tags to remove a single letter
 
-        ASSERTIONS
-        - assert that modified anchor tags are parsed correctly
+    @pytest.mark.parametrize(
+        'input_date,error_message',
+        [(' ', "' ' is not a parseable date" )] # checks whitespace links
+    )
+    def test_fail_on_unparseable_date(self, input_date, error_message):
+        """Tests parse_long_dates() against the standard date format
+        plus all of the edge cases we've seen
         """
-        assert 1
+        parsed, output = parse_long_dates(input_date)
+
+        assert not parsed
+        assert output == error_message
 
 class TestCheckFileList:
     """Tests check_file_list() which checks the list of downloaded pdfs
@@ -243,3 +273,47 @@ class TestDownloadPDF:
           download the file specified by the link
         """
         assert 1
+
+class TestMonthSpellCheck:
+    """Tests the month misspelling detection.
+    This test also specifically *excludes* the misspellings of:
+      'juny'
+      'jule'
+    because both of these misspellings have Levenshtein distances of 1 to both "june" and "july" and it's not possible to determine the correct month without a lot of extra work. If we run into these misspellings it will probably be easier to catch that specific error than rework the function(s) to make the right call.
+    """
+
+    def test_single_deletions(self):
+      """Test for correct detection of months with single-letter deletions.
+      """
+      deletions = dict()
+      for month in months:
+        deletions[month] = list()
+        for j in range(len(month)):
+            deletions[month].append(month[:j] + month[j+1:])
+
+      for month, month_dels in deletions.items():
+        for deletion in month_dels:
+          match, score = month_match_lev(deletion)
+          assert match == month, f'month={month}, match={match}, score={score}, del={deletion}'
+
+
+
+    def test_single_misspell(self):
+      """Test for correct detection of months with single-letter changes.
+      Specifically exempts "jule" and "juny" as they are special cases that hopefully never come up. (And if they do, it'll probably be easier to specifically handle those errors than rework the spellchecking to accomodate them)
+      """
+      misspellings = dict()
+      for month in months:
+        misspellings[month] = list()
+        for j in range(len(month)):
+            for char in alphabet:  # all possible single-letter changes
+                misspell = month[:j] + char + month[j+1:]
+                misspellings[month].append(misspell)
+
+      for month, month_misspells in misspellings.items():
+        for misspelling in month_misspells:
+          if misspelling in ['juny', 'jule']:  # specific exception for special case we hope to never see
+            assert 1
+          else:
+            match, score = month_match_lev(misspelling)
+            assert match == month, f'month={month}, match={match}, score={score}, misspell={misspelling}'
