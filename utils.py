@@ -110,8 +110,7 @@ def store_boe_pdfs(base_url, minutes_url):
         None: This is a void function.
     """
 
-    response = requests.get(minutes_url)
-    soup = BeautifulSoup(response.text, "html.parser")
+    checks, soup = check_and_parse_page(minutes_url)
     root = Path.cwd()
     pdf_dir = root / "pdf_files"
     total_counter = 0
@@ -130,8 +129,7 @@ def store_boe_pdfs(base_url, minutes_url):
         annual_url = base_url + link["href"]
         print(f"Saving files from url: {annual_url}")
         # now follow the link to the page with that year's pdfs
-        response_annual = requests.get(annual_url)
-        soup_annual = BeautifulSoup(response_annual.text, "html.parser")
+        checks, soup_annual = check_and_parse_page(annual_url)
         pdf_links = soup_annual.find_all(name="a", href=re.compile("files"))
         for idx, link in enumerate(pdf_links):
             pdf_location = link["href"]
