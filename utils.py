@@ -9,20 +9,23 @@ from datetime import datetime
 import os
 import numpy as np
 
+
 # months is here because it is used in multiple places
 months = (
-        'january',
-        'february',
-        'march',
-        'april',
-        'may',
-        'june',
-        'july',
-        'august',
-        'september',
-        'october',
-        'november',
-        'december')
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+)
+
 
 def parse_long_dates(date_string):
     """Extracts three simple strings representing the year, month, and day
@@ -36,8 +39,7 @@ def parse_long_dates(date_string):
         day (str): The day as a string representing an integer between 1 and 31
     """
 
-
-    date_regex = re.compile(r'([\w]*)\s+(\d{1,2})\D*(\d{4})', re.IGNORECASE)
+    date_regex = re.compile(r"([\w]*)\s+(\d{1,2})\D*(\d{4})", re.IGNORECASE)
     date_re = date_regex.search(date_string)
     if date_re is None:
         return False, f"'{date_string}' is not a parseable date"
@@ -51,7 +53,6 @@ def parse_long_dates(date_string):
         \D* - Non decimal chars between date and year, not captured
         (\d{4}) - Third capture group, string of four numbers to find year
     """
-    
 
     # check for garbage at the end of the string
     while not date_string[-1].isnumeric():
@@ -60,17 +61,17 @@ def parse_long_dates(date_string):
     # grabs the month.lower() from the regex match of the date_string
     month_str = date_re.group(1).lower()
     month_str, score = month_match_lev(month_str)
-    month = str(months.index(month_str)+1).zfill(2)
+    month = str(months.index(month_str) + 1).zfill(2)
 
     # grab the back of the string to get the year
-    year = date_re.group(3) # grabs year from third capture group in regex
-    day = date_re.group(2) # grabs day from second capture group in regex
+    year = date_re.group(3)  # grabs year from third capture group in regex
+    day = date_re.group(2)  # grabs day from second capture group in regex
 
     # converts year and day to string
     year = str(year)
     day = str(day).zfill(2)
 
-    return True, '_'.join([year, month, day])
+    return True, "_".join([year, month, day])
 
 
 def store_boe_pdfs(base_url, minutes_url):
@@ -83,6 +84,7 @@ def store_boe_pdfs(base_url, minutes_url):
     Returns:
         None: This is a void function.
     """
+
     response = requests.get(minutes_url)
     soup = BeautifulSoup(response.text, "html.parser")
     root = Path.cwd()
@@ -91,7 +93,6 @@ def store_boe_pdfs(base_url, minutes_url):
 
     if not pdf_dir.is_dir():
         pdf_dir.mkdir(parents=True, exist_ok=False)
-
 
     year_links = get_year_links(soup)
 
@@ -119,7 +120,7 @@ def store_boe_pdfs(base_url, minutes_url):
             # handle cases where the date is written out in long form
             parsed, pdf_date = parse_long_dates(pdf_html_text)
             if not parsed:
-                print(pdf_date) # error message
+                print(pdf_date)  # error message
                 continue
             pdf_filename = pdf_date + ".pdf"
             try:
@@ -164,11 +165,7 @@ def store_pdf_text_to_df(path):
         else:
             page_number = ""
         try:
-            row = {
-                "date": date,
-                "page_number": page_number,
-                "minutes": minutes.strip()
-            }
+            row = {"date": date, "page_number": page_number, "minutes": minutes.strip()}
             text_df = text_df.append(row, ignore_index=True)
         except ValueError:
             print(f"No date found for file {pdf_path}")
@@ -181,32 +178,33 @@ def is_empty(_dir: Path) -> bool:
 
 
 def replace_chars(text):
-    replacements = [('Œ', '-'),
-                    ('ﬁ', '"'),
-                    ('ﬂ', '"'),
-                    ('™', "'"),
-                    ('Ł', '•'),
-                    (',', "'"),
-                    ('Š', '-'),
-                    ('€', ' '),
-                    ('¬', '-'),
-                    ('–', '…'),
-                    ('‚', "'"),
-                    ('Ž', '™'),
-                    ('˚', 'fl'),
-                    ('˜', 'fi'),
-                    ('˛', 'ff'),
-                    ('˝', 'ffi'),
-                    ('š', '—'),
-                    ('ü', 'ti'),
-                    ('î', 'í'),
-                    ('è', 'c'),
-                    ('ë', 'e'),
-                    ('Ð', '–'),
-                    ('Ò', '"'),
-                    ('Ó', '"'),
-                    ('Õ', "'"),
-                ]
+    replacements = [
+        ("Œ", "-"),
+        ("ﬁ", '"'),
+        ("ﬂ", '"'),
+        ("™", "'"),
+        ("Ł", "•"),
+        (",", "'"),
+        ("Š", "-"),
+        ("€", " "),
+        ("¬", "-"),
+        ("–", "…"),
+        ("‚", "'"),
+        ("Ž", "™"),
+        ("˚", "fl"),
+        ("˜", "fi"),
+        ("˛", "ff"),
+        ("˝", "ffi"),
+        ("š", "—"),
+        ("ü", "ti"),
+        ("î", "í"),
+        ("è", "c"),
+        ("ë", "e"),
+        ("Ð", "–"),
+        ("Ò", '"'),
+        ("Ó", '"'),
+        ("Õ", "'"),
+    ]
     for i in replacements:
         text = text.replace(i[0], i[1])
     return text
@@ -238,8 +236,12 @@ def get_year_links(start_soup):
         year_links (dict): dictionary with the years (2009, 2010, ..., current year) as keys and relative links as values
     """
     # this eliminates the need to specify the years to grab since four-digit years are used consistently
-    year_tags = start_soup.find_all('a', href=True, text=re.compile(r'^20\d{2}$'))  # find the tags that link to the minutes for specific years
-    year_links = {tag.string: tag.get('href') for tag in year_tags}  # extracting the links
+    year_tags = start_soup.find_all(
+        "a", href=True, text=re.compile(r"^20\d{2}$")
+    )  # find the tags that link to the minutes for specific years
+    year_links = {
+        tag.string: tag.get("href") for tag in year_tags
+    }  # extracting the links
 
     return year_links
 
@@ -259,16 +261,16 @@ def lev(token1, token2):
 
     for t1 in range(1, len(token1) + 1):
         for t2 in range(1, len(token2) + 1):
-            if (token1[t1-1] == token2[t2-1]):
+            if token1[t1 - 1] == token2[t2 - 1]:
                 distances[t1][t2] = distances[t1 - 1][t2 - 1]
             else:
                 a = distances[t1][t2 - 1]
                 b = distances[t1 - 1][t2]
                 c = distances[t1 - 1][t2 - 1]
 
-                if (a <= b and a <= c):
+                if a <= b and a <= c:
                     distances[t1][t2] = a + 1
-                elif (b <= a and b <= c):
+                elif b <= a and b <= c:
                     distances[t1][t2] = b + 1
                 else:
                     distances[t1][t2] = c + 1
@@ -286,7 +288,7 @@ def month_match_lev(text):
         best_score (int): the Levenshtein distance between text and best_match
     """
     text = text.lower()
-    best_match = ''
+    best_match = ""
     best_score = 9999  # lower scores are better
     for i in months:
         # lev dist == num changes to make text into i
