@@ -6,8 +6,7 @@ from utils import month_match_lev, parse_long_dates, lev
 
 from .data.pdf_download_data import HTML_TEXT, YEAR_LINKS
 
-from bike_rack.check_page_setup import check_and_parse_page
-from utils import get_year_links
+from utils import get_year_links, check_and_parse_page
 
 alphabet = "abcdefghijklmnopqrstuvwxyz"
 months = [
