@@ -6,8 +6,23 @@ from pathlib import Path
 import re
 import PyPDF2
 from datetime import datetime
-from pathlib import Path
+import os
+import numpy as np
 
+# months is here because it is used in multiple places
+months = (
+        'january',
+        'february',
+        'march',
+        'april',
+        'may',
+        'june',
+        'july',
+        'august',
+        'september',
+        'october',
+        'november',
+        'december')
 
 def parse_long_dates(date_string):
     """Extracts three simple strings representing the year, month, and day
@@ -20,33 +35,42 @@ def parse_long_dates(date_string):
         month (str): The month as a string representing an integer between 1 and 12
         day (str): The day as a string representing an integer between 1 and 31
     """
+
+
+    date_regex = re.compile(r'([\w]*)\s+(\d{1,2})\D*(\d{4})', re.IGNORECASE)
+    date_re = date_regex.search(date_string)
+    if date_re is None:
+        return False, f"'{date_string}' is not a parseable date"
+    """
+    This regex captures any long date formats
+
+    The components of the regex:
+        (\w*) - First capture group, one or more word chars to find month
+        \s - Space between month and date, not captured
+        (\d{1,2}) - Second capture group, one or two numbers to find date
+        \D* - Non decimal chars between date and year, not captured
+        (\d{4}) - Third capture group, string of four numbers to find year
+    """
+    
+
     # check for garbage at the end of the string
     while not date_string[-1].isnumeric():
         date_string = date_string[:-1]
-    # grab the front of the string, where we expect the three-letter month to be
-    month = date_string[:3]
-    # this error will come up, so we catch it
-    if month == "une":
-        month = "Jun"
+
+    # grabs the month.lower() from the regex match of the date_string
+    month_str = date_re.group(1).lower()
+    month_str, score = month_match_lev(month_str)
+    month = str(months.index(month_str)+1).zfill(2)
+
     # grab the back of the string to get the year
-    year = date_string[-4:]
-    # try to convert the month to str(int) form, or throw an error
-    try:
-        month = str(time.strptime(month, "%b").tm_mon)
-    except ValueError as err:
-        print(f"month: {month}")
-        print(f"Encountered ValueError on file: {date_string}")
-    day = date_string.split(" ")[1]
-    day = "".join(filter(str.isdigit, day))
-    # check integrity
-    assert (
-        year.isnumeric()
-    ), f"The year is not numeric. year: {year} input: {date_string}"
-    assert (
-        month.isnumeric()
-    ), f"The month is not numeric. month: {month} input: {date_string}"
-    assert day.isnumeric(), f"The day is not numeric. day: {day} input: {date_string}"
-    return year, month, day
+    year = date_re.group(3) # grabs year from third capture group in regex
+    day = date_re.group(2) # grabs day from second capture group in regex
+
+    # converts year and day to string
+    year = str(year)
+    day = str(day).zfill(2)
+
+    return True, '_'.join([year, month, day])
 
 
 def store_boe_pdfs(base_url, minutes_url):
@@ -93,15 +117,17 @@ def store_boe_pdfs(base_url, minutes_url):
                 link.get_text().strip().encode("ascii", "ignore").decode("utf-8")
             )
             # handle cases where the date is written out in long form
-            if any(char.isdigit() for char in pdf_html_text):
-                pdf_year, pdf_month, pdf_day = parse_long_dates(pdf_html_text)
-                pdf_filename = "_".join([pdf_year, pdf_month, pdf_day]) + ".pdf"
-                try:
-                    with open(save_path / pdf_filename, "wb") as f:
-                        f.write(pdf_file.content)
-                    total_counter += 1
-                except TypeError as err:
-                    print(f"an error occurred with path {pdf_location}: {err}")
+            parsed, pdf_date = parse_long_dates(pdf_html_text)
+            if not parsed:
+                print(pdf_date) # error message
+                continue
+            pdf_filename = pdf_date + ".pdf"
+            try:
+                with open(save_path / pdf_filename, "wb") as f:
+                    f.write(pdf_file.content)
+                total_counter += 1
+            except TypeError as err:
+                print(f"an error occurred with path {pdf_location}: {err}")
     print(f"Wrote {total_counter} .pdf files to local repo.")
     return
 
@@ -187,10 +213,10 @@ def replace_chars(text):
 
 
 def del_dir_contents(root):
-    """Convenience function so we don't have to empy out pdf_dir by hand 
-    during testing. 
-    
-    Removes all 
+    """Convenience function so we don't have to empy out pdf_dir by hand
+    during testing.
+
+    Removes all
     """
     for p in root.iterdir():
         if p.is_dir():
@@ -216,3 +242,57 @@ def get_year_links(start_soup):
     year_links = {tag.string: tag.get('href') for tag in year_tags}  # extracting the links
 
     return year_links
+
+
+def lev(token1, token2):
+    distances = np.zeros((len(token1) + 1, len(token2) + 1))
+
+    for t1 in range(len(token1) + 1):
+        distances[t1][0] = t1
+
+    for t2 in range(len(token2) + 1):
+        distances[0][t2] = t2
+
+    a = 0
+    b = 0
+    c = 0
+
+    for t1 in range(1, len(token1) + 1):
+        for t2 in range(1, len(token2) + 1):
+            if (token1[t1-1] == token2[t2-1]):
+                distances[t1][t2] = distances[t1 - 1][t2 - 1]
+            else:
+                a = distances[t1][t2 - 1]
+                b = distances[t1 - 1][t2]
+                c = distances[t1 - 1][t2 - 1]
+
+                if (a <= b and a <= c):
+                    distances[t1][t2] = a + 1
+                elif (b <= a and b <= c):
+                    distances[t1][t2] = b + 1
+                else:
+                    distances[t1][t2] = c + 1
+
+    return distances[len(token1)][len(token2)]
+
+
+def month_match_lev(text):
+    """
+    Args:
+        text (str): the misspelled month string
+
+    Returns:
+        best_match (str): the month string that best matches the misspelled input
+        best_score (int): the Levenshtein distance between text and best_match
+    """
+    text = text.lower()
+    best_match = ''
+    best_score = 9999  # lower scores are better
+    for i in months:
+        # lev dist == num changes to make text into i
+        score = lev(text, i)
+        if score < best_score:
+            best_score = score
+            best_match = i
+
+    return best_match, best_score

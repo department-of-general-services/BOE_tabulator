@@ -1,58 +1,64 @@
+import pytest
+import requests
+from bs4 import BeautifulSoup
+from pprint import pprint
+from utils import month_match_lev, parse_long_dates, lev
+
 from .data.pdf_download_data import HTML_TEXT, YEAR_LINKS
 
-class TestCheckPageSetup:
-    """Tests check_page_setup() which confirms that the current layout of
-    the BOE page still matches the expected layout
+from bike_rack.check_page_setup import check_and_parse_page
+from utils import get_year_links
+
+alphabet = 'abcdefghijklmnopqrstuvwxyz'
+months = [
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december']
+
+class TestCheckAndParsePage:
+    """Tests check_and_parse_page() which confirms that the current layout of
+    the BOE page still matches the expected layout and returns a BeautifulSoup
+    object of the parsed html
     """
 
-    def test_boe_link(self):
-        """Tests that the link supplied directs to BOE meetings page of the
-        Comptroller website
-
-        TEST DATA
-        - N/A
-
-        TEST SETUP
-        - N/A
-
-        ASSERTIONS
-        - assert that the response from hitting the page is 200
-        - assert that the page contains "Minutes" in the page title
+    @pytest.mark.parametrize(
+        'url, expected',
+        [('https://comptroller.baltimorecity.gov/boe/meetings/minutes',
+          {'pass': ['request', 'html_parsing'],
+           'fail': [],
+           'error_message': None}),
+         ('https://comptroller.baltimorecity.gov/boe/fake-path',
+          {'pass': [],
+           'fail': ['request'],
+           'error_message': 'Not Found'})]
+    )
+    def test_check_and_parse_page(self, url, expected):
+        """Tests check_and_parse_page() with several different urls
         """
-        assert 1
 
-    def test_year_div(self):
-        """Tests that the div containing the links to the minutes page for
-        each year exists on the page
+        # runs function on input url and captures return values
+        checks, soup = check_and_parse_page(url)
 
-        TEST DATA
-        - N/A
+        # checks that the checks returned by the function match expected
+        print('EXPECTED')
+        pprint(expected)
+        print('OUTPUT')
+        pprint(checks)
+        assert checks == expected
 
-        TEST DATA
-        - N/A
+        # checks that the soupified page is returned
+        if 'html_parsing' in checks['pass']:
+            assert soup is not None
 
-        ASSERTIONS
-        - assert that a div with class 'field field-name-body'
-        - assert that there is a <p> tag with links that follow a year format
-        """
-        assert 1
-
-    def test_minute_div(self):
-        """Tests that the div containing the links to each meeting's minutes
-        exists on the page
-
-        TEST DATA
-        - N/A
-
-        TEST DATA
-        - N/A
-
-        ASSERTIONS
-        - assert that a div with class 'field field-name-body'
-        - assert that there is a <p> tag with links that follow the
-          meeting link format
-        """
-        assert 1
 
 class TestGetYearLinks:
     """Tests get_year_links() that retrieves the links to the pages that
@@ -62,37 +68,22 @@ class TestGetYearLinks:
     def test_get_year_links(self):
         """Tests the function that retrieves the list of links for each page
         on the Comptroller website that corresponds to a year of BOE meetings
-
-        TEST DATA
-        - A sample of the html scraped from a particular page
-        - A known list of year links from the BOE page
-
-        TEST SETUP
-        - N/A
-
-        ASSERTIONS
-        - assert that the scraped links matches the list of known links
         """
-        assert 1
+        # parses sample html for input to get_year_links() function
+        soup = BeautifulSoup(HTML_TEXT, 'html.parser')
+        expected = YEAR_LINKS
 
-    def test_exclude_non_year_links(self):
-        """Tests the exclusion of other anchor tags on the page that match a
-        format similar to that of the links for each year of minutes
+        # runs get_year_links() function and captures output
+        output = get_year_links(soup)
 
-        TEST DATA
-        - A sample of the html scraped from a particular page
-        - A list of anchor tags for each year in the sample html
+        # checks that the output of get_year_links matches the
+        # expected list of annual links from the sample html
+        print('EXPECTED')
+        pprint(expected)
+        print('OUTPUT')
+        pprint(output)
+        assert output == expected
 
-        TEST SETUP
-        - Add an anchor tag that matches the format of the year link to some
-          part of the sample HTML data outside the div where year links are
-          currently found
-
-        ASSERTIONS
-        - assert that the scraped links exclude the anchor tag added during
-          the test setup
-        """
-        assert 1
 
 class TestGetMeetingLinks:
     """Tests get_meeting_links() which retrieves all of the meeting links
@@ -136,36 +127,51 @@ class TestGetParseMeetingDate:
     the anchor tags returned by the get_meeting_links() function
     """
 
-    def test_standard_date_format(self):
-        """Tests the parsing of the standard date format in the anchor tags
+    @pytest.mark.parametrize(
+        'word_a,word_b,expected_distance',
+        [('possible', 'impossible', 2),
+         ('possible', 'sorry', 7),
+         ('January', 'Jaunary', 2),
+         ('June', 'une', 1)]
+    )
+    def test_levenshtein_distance(self, word_a, word_b, expected_distance):
+        """Tests the Levenshtein distance algorithm created as a helper
+        function for parse_long_date"""
 
-        TEST DATA
-        - A list of anchor tag that each contains the meeting date
-          in a standard format
+        distance = lev(word_a, word_b)
+        assert distance == expected_distance
 
-        TEST SETUP
-        - N/A
-
-        ASSERTIONS
-        - assert that the long date is parsed into the correct format
+    @pytest.mark.parametrize(
+        'input_date,output_date',
+        [('November 10, 2020', '2020_11_10'), # checks standard date
+         ('April 6, 2020', '2020_04_06'), # checks for zero padding
+         ('une 17, 2019', '2019_06_17'), # checks for single letter deletion
+         ('Mrach 2, 2018', '2018_03_02')] # checks for swapped letters
+    )
+    def test_parse_long_dates(self, input_date, output_date):
+        """Tests parse_long_dates() against the standard date format
+        plus all of the edge cases we've seen
         """
-        assert 1
+        parsed, date = parse_long_dates(input_date)
 
-    def test_single_letter_deletions(self):
-        """Tests the parsing of dates in which the anchor tag is missing
-        a letter of the month, e.g. 'une' instead of 'June'
+        print(f'date {date}')
 
-        TEST DATA
-        - A list of anchor tag that each contains the meeting date
-          in a standard format
+        assert date == output_date
+        assert parsed
 
-        TEST SETUP
-        - Modify the text of the anchor tags to remove a single letter
 
-        ASSERTIONS
-        - assert that modified anchor tags are parsed correctly
+    @pytest.mark.parametrize(
+        'input_date,error_message',
+        [(' ', "' ' is not a parseable date" )] # checks whitespace links
+    )
+    def test_fail_on_unparseable_date(self, input_date, error_message):
+        """Tests parse_long_dates() against the standard date format
+        plus all of the edge cases we've seen
         """
-        assert 1
+        parsed, output = parse_long_dates(input_date)
+
+        assert not parsed
+        assert output == error_message
 
 class TestCheckFileList:
     """Tests check_file_list() which checks the list of downloaded pdfs
@@ -267,3 +273,47 @@ class TestDownloadPDF:
           download the file specified by the link
         """
         assert 1
+
+class TestMonthSpellCheck:
+    """Tests the month misspelling detection.
+    This test also specifically *excludes* the misspellings of:
+      'juny'
+      'jule'
+    because both of these misspellings have Levenshtein distances of 1 to both "june" and "july" and it's not possible to determine the correct month without a lot of extra work. If we run into these misspellings it will probably be easier to catch that specific error than rework the function(s) to make the right call.
+    """
+
+    def test_single_deletions(self):
+      """Test for correct detection of months with single-letter deletions.
+      """
+      deletions = dict()
+      for month in months:
+        deletions[month] = list()
+        for j in range(len(month)):
+            deletions[month].append(month[:j] + month[j+1:])
+
+      for month, month_dels in deletions.items():
+        for deletion in month_dels:
+          match, score = month_match_lev(deletion)
+          assert match == month, f'month={month}, match={match}, score={score}, del={deletion}'
+
+
+
+    def test_single_misspell(self):
+      """Test for correct detection of months with single-letter changes.
+      Specifically exempts "jule" and "juny" as they are special cases that hopefully never come up. (And if they do, it'll probably be easier to specifically handle those errors than rework the spellchecking to accomodate them)
+      """
+      misspellings = dict()
+      for month in months:
+        misspellings[month] = list()
+        for j in range(len(month)):
+            for char in alphabet:  # all possible single-letter changes
+                misspell = month[:j] + char + month[j+1:]
+                misspellings[month].append(misspell)
+
+      for month, month_misspells in misspellings.items():
+        for misspelling in month_misspells:
+          if misspelling in ['juny', 'jule']:  # specific exception for special case we hope to never see
+            assert 1
+          else:
+            match, score = month_match_lev(misspelling)
+            assert match == month, f'month={month}, match={match}, score={score}, misspell={misspelling}'
