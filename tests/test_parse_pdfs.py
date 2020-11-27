@@ -1,20 +1,21 @@
 import pytest
 import PyPDF2
+from pathlib import Path
 
-# from bike_rack.minutes import Minutes
+from bike_rack.parse_utils import Minutes
 
 
-class TestBOEMinutes:
+class TestMinutes:
 
-    def test_initialize_boe_minutes(self):
+    @pytest.mark.parametrize(
+        'pdf_path,page_count,meeting_date',
+        [('tests/data/2010_03_17.pdf', 105, '2010-03-17'),
+         ('tests/data/2013_11_20.pdf', 209, '2013-11-20')]
+    )
+    def test_init(self, pdf_path, page_count, meeting_date):
 
-        pdf_path = 'tests/data/2010_3_17.pdf'
-        page_count = 105
-        meeting_date = '2020-03-17'
+        path = Path(pdf_path)
+        minutes = Minutes(path)
 
-        Minutes = PyPDF2.PdfFileReader(pdf_path)
-        assert page_count == Minutes.numPages
-
-        Page1 = Minutes.getPage(1)
-        print(Page1.extractText())
-        assert 0
+        assert page_count == minutes.page_count
+        assert meeting_date == minutes.meeting_date
