@@ -1,5 +1,4 @@
 import pytest
-import requests
 from bs4 import BeautifulSoup
 from pprint import pprint
 from utils import month_match_lev, parse_long_dates, lev
@@ -49,8 +48,7 @@ class TestCheckAndParsePage:
         ],
     )
     def test_check_and_parse_page(self, url, expected):
-        """Tests check_and_parse_page() with several different urls
-        """
+        """Tests check_and_parse_page() with several different urls"""
 
         # runs function on input url and captures return values
         checks, soup = check_and_parse_page(url)
@@ -293,12 +291,14 @@ class TestMonthSpellCheck:
     This test also specifically *excludes* the misspellings of:
       'juny'
       'jule'
-    because both of these misspellings have Levenshtein distances of 1 to both "june" and "july" and it's not possible to determine the correct month without a lot of extra work. If we run into these misspellings it will probably be easier to catch that specific error than rework the function(s) to make the right call.
-    """
+    because both of these misspellings have Levenshtein distances
+    of 1 to both "june" and "july" and it's not possible to determine
+    the correct month without a lot of extra work. If we run into these
+    misspellings it will probably be easier to catch that specific error
+    than rework the function(s) to make the right call."""
 
     def test_single_deletions(self):
-        """Test for correct detection of months with single-letter deletions.
-      """
+        """Test for correct detection of months with single-letter deletions."""
         deletions = dict()
         for month in months:
             deletions[month] = list()
@@ -314,8 +314,10 @@ class TestMonthSpellCheck:
 
     def test_single_misspell(self):
         """Test for correct detection of months with single-letter changes.
-      Specifically exempts "jule" and "juny" as they are special cases that hopefully never come up. (And if they do, it'll probably be easier to specifically handle those errors than rework the spellchecking to accomodate them)
-      """
+        Specifically exempts "jule" and "juny" as they are special cases that
+        hopefully never come up. (And if they do, it'll probably be easier
+        to specifically handle those errors than rework the spellchecking
+        to accomodate them)"""
         misspellings = dict()
         for month in months:
             misspellings[month] = list()
@@ -333,7 +335,7 @@ class TestMonthSpellCheck:
                     assert 1
                 else:
                     match, score = month_match_lev(misspelling)
-                    assert (
-                        match == month
-                    ), f"month={month}, match={match}, score={score}, misspell={misspelling}"
-
+                    assert match == month, (
+                        f"month={month}, match={match}, score={score},"
+                        f"misspell={misspelling}"
+                    )
