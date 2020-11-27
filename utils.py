@@ -26,7 +26,6 @@ def check_and_parse_page(url):
     # let's note the exception, restore the try-except, and catch it
     soup = BeautifulSoup(response.text, "html.parser")
     checks["pass"].append("html_parsing")
-    return checks, None
 
     # if all checks pass set error message to none and return checks
     checks["error_message"] = None
