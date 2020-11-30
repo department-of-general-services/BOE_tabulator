@@ -53,11 +53,11 @@ class Minutes:
         return date
 
 
-    def parse_pages(self, range_type):
+    def parse_pages(self):
         text = ""
         for page in self.reader.pages:
             text += page.extractText().strip()
-        self.parsed_text = self.replace_chars(text)
+        self.parsed_text = text
 
 
     def replace_chars(self, text):

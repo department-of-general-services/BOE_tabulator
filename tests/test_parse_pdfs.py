@@ -33,5 +33,5 @@ class TestMinutes:
 
         minutes.parse_pages()
         assert minutes.parsed_text is not None
-        print(minutes.parsed_text[:20])
+        print(minutes.parsed_text[:500])
         assert 0
