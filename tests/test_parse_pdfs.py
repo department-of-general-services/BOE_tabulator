@@ -3,6 +3,7 @@ import PyPDF2
 from pathlib import Path
 
 from bike_rack.parse_utils import Minutes
+from tests.data.parse_pdfs_data import PARSED_TEXT
 
 
 class TestMinutes:
@@ -22,16 +23,24 @@ class TestMinutes:
 
 
     @pytest.mark.parametrize(
-        'pdf_path',
-        ['tests/data/2010_03_17.pdf',
-         'tests/data/2013_11_20.pdf']
+        'pdf_path,expected',
+        [
+            ('tests/data/2010_03_17.pdf', PARSED_TEXT['2010']),
+            ('tests/data/2013_11_20.pdf', PARSED_TEXT['2013'])
+        ]
     )
-    def test_parse_pages(self, pdf_path):
+    def test_parse_pages(self, pdf_path, expected):
 
         path = Path(pdf_path)
         minutes = Minutes(path)
 
-        minutes.parse_pages()
+        output = minutes.parse_pages()
+        assert minutes.parsed_text == output
         assert minutes.parsed_text is not None
-        print(minutes.parsed_text[:500])
-        assert 0
+
+        print('OUTPUT')
+        print(output[:100])
+        print('EXPECTED')
+        print(expected)
+
+        assert output[:100] == expected
