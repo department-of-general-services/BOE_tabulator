@@ -6,23 +6,24 @@ from utils import month_match_lev, parse_long_dates, lev
 
 from .data.pdf_download_data import HTML_TEXT, YEAR_LINKS
 
-from bike_rack.check_page_setup import check_and_parse_page
-from utils import get_year_links
+from utils import get_year_links, check_and_parse_page
 
-alphabet = 'abcdefghijklmnopqrstuvwxyz'
+alphabet = "abcdefghijklmnopqrstuvwxyz"
 months = [
-    'january',
-    'february',
-    'march',
-    'april',
-    'may',
-    'june',
-    'july',
-    'august',
-    'september',
-    'october',
-    'november',
-    'december']
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+]
+
 
 class TestCheckAndParsePage:
     """Tests check_and_parse_page() which confirms that the current layout of
@@ -31,15 +32,21 @@ class TestCheckAndParsePage:
     """
 
     @pytest.mark.parametrize(
-        'url, expected',
-        [('https://comptroller.baltimorecity.gov/boe/meetings/minutes',
-          {'pass': ['request', 'html_parsing'],
-           'fail': [],
-           'error_message': None}),
-         ('https://comptroller.baltimorecity.gov/boe/fake-path',
-          {'pass': [],
-           'fail': ['request'],
-           'error_message': 'Not Found'})]
+        "url, expected",
+        [
+            (
+                "https://comptroller.baltimorecity.gov/boe/meetings/minutes",
+                {
+                    "pass": ["request", "html_parsing"],
+                    "fail": [],
+                    "error_message": None,
+                },
+            ),
+            (
+                "https://comptroller.baltimorecity.gov/boe/fake-path",
+                {"pass": [], "fail": ["request"], "error_message": "Not Found"},
+            ),
+        ],
     )
     def test_check_and_parse_page(self, url, expected):
         """Tests check_and_parse_page() with several different urls
@@ -49,14 +56,14 @@ class TestCheckAndParsePage:
         checks, soup = check_and_parse_page(url)
 
         # checks that the checks returned by the function match expected
-        print('EXPECTED')
+        print("EXPECTED")
         pprint(expected)
-        print('OUTPUT')
+        print("OUTPUT")
         pprint(checks)
         assert checks == expected
 
         # checks that the soupified page is returned
-        if 'html_parsing' in checks['pass']:
+        if "html_parsing" in checks["pass"]:
             assert soup is not None
 
 
@@ -70,7 +77,7 @@ class TestGetYearLinks:
         on the Comptroller website that corresponds to a year of BOE meetings
         """
         # parses sample html for input to get_year_links() function
-        soup = BeautifulSoup(HTML_TEXT, 'html.parser')
+        soup = BeautifulSoup(HTML_TEXT, "html.parser")
         expected = YEAR_LINKS
 
         # runs get_year_links() function and captures output
@@ -78,9 +85,9 @@ class TestGetYearLinks:
 
         # checks that the output of get_year_links matches the
         # expected list of annual links from the sample html
-        print('EXPECTED')
+        print("EXPECTED")
         pprint(expected)
-        print('OUTPUT')
+        print("OUTPUT")
         pprint(output)
         assert output == expected
 
@@ -122,17 +129,20 @@ class TestGetMeetingLinks:
         """
         assert 1
 
+
 class TestGetParseMeetingDate:
     """Tests parse_meeting_dates() which parses the meeting date from
     the anchor tags returned by the get_meeting_links() function
     """
 
     @pytest.mark.parametrize(
-        'word_a,word_b,expected_distance',
-        [('possible', 'impossible', 2),
-         ('possible', 'sorry', 7),
-         ('January', 'Jaunary', 2),
-         ('June', 'une', 1)]
+        "word_a,word_b,expected_distance",
+        [
+            ("possible", "impossible", 2),
+            ("possible", "sorry", 7),
+            ("January", "Jaunary", 2),
+            ("June", "une", 1),
+        ],
     )
     def test_levenshtein_distance(self, word_a, word_b, expected_distance):
         """Tests the Levenshtein distance algorithm created as a helper
@@ -142,11 +152,13 @@ class TestGetParseMeetingDate:
         assert distance == expected_distance
 
     @pytest.mark.parametrize(
-        'input_date,output_date',
-        [('November 10, 2020', '2020_11_10'), # checks standard date
-         ('April 6, 2020', '2020_04_06'), # checks for zero padding
-         ('une 17, 2019', '2019_06_17'), # checks for single letter deletion
-         ('Mrach 2, 2018', '2018_03_02')] # checks for swapped letters
+        "input_date,output_date",
+        [
+            ("November 10, 2020", "2020_11_10"),  # checks standard date
+            ("April 6, 2020", "2020_04_06"),  # checks for zero padding
+            ("une 17, 2019", "2019_06_17"),  # checks for single letter deletion
+            ("Mrach 2, 2018", "2018_03_02"),
+        ],  # checks for swapped letters
     )
     def test_parse_long_dates(self, input_date, output_date):
         """Tests parse_long_dates() against the standard date format
@@ -154,15 +166,14 @@ class TestGetParseMeetingDate:
         """
         parsed, date = parse_long_dates(input_date)
 
-        print(f'date {date}')
+        print(f"date {date}")
 
         assert date == output_date
         assert parsed
 
-
     @pytest.mark.parametrize(
-        'input_date,error_message',
-        [(' ', "' ' is not a parseable date" )] # checks whitespace links
+        "input_date,error_message",
+        [(" ", "' ' is not a parseable date")],  # checks whitespace links
     )
     def test_fail_on_unparseable_date(self, input_date, error_message):
         """Tests parse_long_dates() against the standard date format
@@ -172,6 +183,7 @@ class TestGetParseMeetingDate:
 
         assert not parsed
         assert output == error_message
+
 
 class TestCheckFileList:
     """Tests check_file_list() which checks the list of downloaded pdfs
@@ -235,6 +247,7 @@ class TestCheckFileList:
         """
         assert 1
 
+
 class TestDownloadPDF:
     """Tests the function that downloads and stores any missing pdfs returned
     by check_file_list() in the directory of downloaded pdfs
@@ -274,6 +287,7 @@ class TestDownloadPDF:
         """
         assert 1
 
+
 class TestMonthSpellCheck:
     """Tests the month misspelling detection.
     This test also specifically *excludes* the misspellings of:
@@ -283,37 +297,43 @@ class TestMonthSpellCheck:
     """
 
     def test_single_deletions(self):
-      """Test for correct detection of months with single-letter deletions.
+        """Test for correct detection of months with single-letter deletions.
       """
-      deletions = dict()
-      for month in months:
-        deletions[month] = list()
-        for j in range(len(month)):
-            deletions[month].append(month[:j] + month[j+1:])
+        deletions = dict()
+        for month in months:
+            deletions[month] = list()
+            for j in range(len(month)):
+                deletions[month].append(month[:j] + month[j + 1 :])
 
-      for month, month_dels in deletions.items():
-        for deletion in month_dels:
-          match, score = month_match_lev(deletion)
-          assert match == month, f'month={month}, match={match}, score={score}, del={deletion}'
-
-
+        for month, month_dels in deletions.items():
+            for deletion in month_dels:
+                match, score = month_match_lev(deletion)
+                assert (
+                    match == month
+                ), f"month={month}, match={match}, score={score}, del={deletion}"
 
     def test_single_misspell(self):
-      """Test for correct detection of months with single-letter changes.
+        """Test for correct detection of months with single-letter changes.
       Specifically exempts "jule" and "juny" as they are special cases that hopefully never come up. (And if they do, it'll probably be easier to specifically handle those errors than rework the spellchecking to accomodate them)
       """
-      misspellings = dict()
-      for month in months:
-        misspellings[month] = list()
-        for j in range(len(month)):
-            for char in alphabet:  # all possible single-letter changes
-                misspell = month[:j] + char + month[j+1:]
-                misspellings[month].append(misspell)
+        misspellings = dict()
+        for month in months:
+            misspellings[month] = list()
+            for j in range(len(month)):
+                for char in alphabet:  # all possible single-letter changes
+                    misspell = month[:j] + char + month[j + 1 :]
+                    misspellings[month].append(misspell)
 
-      for month, month_misspells in misspellings.items():
-        for misspelling in month_misspells:
-          if misspelling in ['juny', 'jule']:  # specific exception for special case we hope to never see
-            assert 1
-          else:
-            match, score = month_match_lev(misspelling)
-            assert match == month, f'month={month}, match={match}, score={score}, misspell={misspelling}'
+        for month, month_misspells in misspellings.items():
+            for misspelling in month_misspells:
+                if misspelling in [
+                    "juny",
+                    "jule",
+                ]:  # specific exception for special case we hope to never see
+                    assert 1
+                else:
+                    match, score = month_match_lev(misspelling)
+                    assert (
+                        match == month
+                    ), f"month={month}, match={match}, score={score}, misspell={misspelling}"
+
