@@ -1,13 +1,13 @@
 import requests
 import pandas as pd
-import time
 from bs4 import BeautifulSoup
 from pathlib import Path
 import re
 import PyPDF2
 from datetime import datetime
-import os
 import numpy as np
+
+# adding throwaway comment to test pre-commit hook
 
 
 def check_and_parse_page(url):
@@ -23,12 +23,11 @@ def check_and_parse_page(url):
         return checks, None
 
     # tries to parse HTML from response text
-    try:
-        soup = BeautifulSoup(response.text, "html.parser")
-        checks["pass"].append("html_parsing")
-    except:
-        checks["error_message"] = "Issue with parsing"
-        return checks, None
+    # Note: I've removed the try-except logic since no one has seen the error
+    # we're trying to catch. If we get a parse error in the future, then
+    # let's note the exception, restore the try-except, and catch it
+    soup = BeautifulSoup(response.text, "html.parser")
+    checks["pass"].append("html_parsing")
 
     # if all checks pass set error message to none and return checks
     checks["error_message"] = None
@@ -60,8 +59,8 @@ def parse_long_dates(date_string):
         date_string (str): The date in 'long' format
     Returns:
         year (str): The year as a four-character string
-        month (str): The month as a string representing an integer between 1 and 12
-        day (str): The day as a string representing an integer between 1 and 31
+        month (str): The month as a string representing an int between 1 and 12
+        day (str): The day as a string representing an int between 1 and 31
     """
 
     date_regex = re.compile(r"([\w]*)\s+(\d{1,2})\D*(\d{4})", re.IGNORECASE)
@@ -104,8 +103,8 @@ def store_boe_pdfs(base_url, minutes_url):
     repository for later analysis.
     Args:
         base_url (str): The main url for the Comptroller of Baltimore's webiste
-        minutes_url (str): The url where the function can find links to pages of
-            pdf files organized by year
+        minutes_url (str): The url where the function can find links to
+            pages of pdf files organized by year
     Returns:
         None: This is a void function.
     """
@@ -183,7 +182,7 @@ def store_pdf_text_to_df(path):
         pdfFileObj = open(pdf_path, "rb")
         try:
             pdfReader = PyPDF2.PdfFileReader(pdfFileObj, strict=False)
-        except:
+        except ValueError:
             print(f"An error occurred reading file {pdf_path}")
         for page in pdfReader.pages:
             minutes += page.extractText().strip()
@@ -261,12 +260,15 @@ def del_dir_contents(root):
 def get_year_links(start_soup):
     """
     Args:
-        start_soup (BeautifulSoup object): the beautifulsoup object that parses the "landing page" for the minutes links
+        start_soup (BeautifulSoup object): the beautifulsoup object that
+        parses the "landing page" for the minutes links
 
     Returns:
-        year_links (dict): dictionary with the years (2009, 2010, ..., current year) as keys and relative links as values
+        year_links (dict): dictionary with the years (2009, 2010, ...,
+        current year) as keys and relative links as values
     """
-    # this eliminates the need to specify the years to grab since four-digit years are used consistently
+    # this eliminates the need to specify the years to grab since
+    # four-digit years are used consistently
     year_tags = start_soup.find_all(
         "a", href=True, text=re.compile(r"^20\d{2}$")
     )  # find the tags that link to the minutes for specific years
@@ -329,4 +331,3 @@ def month_match_lev(text):
             best_match = i
 
     return best_match, best_score
-
