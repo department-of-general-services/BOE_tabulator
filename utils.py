@@ -111,6 +111,10 @@ def store_boe_pdfs(base_url, minutes_url):
     """
 
     checks, soup = check_and_parse_page(minutes_url)
+    if checks["fail"]:
+        print(f"Encountered an issue accessing {minutes_url}")
+        print(f"Exiting due to the following error: {checks['error_message']}")
+        return
     root = Path.cwd()
     pdf_dir = root / "pdf_files"
     total_counter = 0
@@ -130,6 +134,10 @@ def store_boe_pdfs(base_url, minutes_url):
         print(f"Saving files from url: {annual_url}")
         # now follow the link to the page with that year's pdfs
         checks, soup_annual = check_and_parse_page(annual_url)
+        if checks["fail"]:
+            print(f"Encountered an issue accessing {annual_url}")
+            print(f"Escaping the current loop due to the following error: {checks['error_message']}")
+            continue
         pdf_links = soup_annual.find_all(name="a", href=re.compile("files"))
         for idx, link in enumerate(pdf_links):
             pdf_location = link["href"]
