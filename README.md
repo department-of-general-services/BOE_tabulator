@@ -30,7 +30,7 @@ The output should look something like this:
 ```
 > Python 3.7.7
 ```
-If you don't have Python version 3.6 or later installed on your computer. Consider using [pyenv](https://github.com/pyenv/pyenv) to install and manage multiple versions of Python concurrently.
+If you don't have Python version 3.6 or later installed on your computer, consider using [pyenv](https://github.com/pyenv/pyenv) to install and manage multiple versions of Python concurrently.
 
 ### Installation
 1. Fork the repo -- for more information about forking, reference [this guide](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/working-with-forks)
@@ -65,6 +65,14 @@ If you don't have Python version 3.6 or later installed on your computer. Consid
 1. Install necessary python packages
    ```
    $ pip install -r requirements.txt
+   ```
+1. Install pre-commit to enable pre-commit hooks (This step ensures that your code is formatted according the Black standard and is compliant with PEP8.)
+   ```
+   $ pre-commit install
+   ````
+After making the above command from within the repository's root directory, you should see the following output:
+   ```
+   pre-commit installed at .git/hooks/pre-commit
    ```
 1. Run the tests and make sure everything passes
    ```
