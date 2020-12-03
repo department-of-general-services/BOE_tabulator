@@ -44,11 +44,20 @@ def replace_chars(text, replacement_list):
     return text
 
 def parse_pdf(pdf_path):
+    """Parses the pdf of the minutes from a BOE meeting and cleans the text
+
+    Args:
+        pdf_path (pathlib.Path): The path to the pdf to parse
+    Returns:
+        minutes (Minutes): An instance of the Minutes class
+    """
     try:
         minutes = Minutes(pdf_path)
-    except ValueError as e:
+        minutes.parse_pages()
+        minutes.clean_pages()
+    except (ValueError, FileNotFoundError) as e:
         print(f"The following error occurred parsing file '{pdf_path}': {e}")
-        return None
+        raise e
     return minutes
 
 

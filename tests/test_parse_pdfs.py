@@ -2,7 +2,7 @@ import pytest
 import PyPDF2
 from pathlib import Path
 
-from bike_rack.parse_utils import parse_pdf, replace_chars, REPLACEMENTS
+from bike_rack.parse_utils import Minutes, parse_pdf, replace_chars, REPLACEMENTS
 from tests.data.parse_pdfs_data import RAW_TEXT, CLEAN_TEXT
 
 
@@ -18,7 +18,9 @@ def test_replace_chars(text, expected):
     assert output == expected
 
 
-class TestParsePDF:
+class TestMinutes:
+    """Tests the Minutes class and its methods"""
+
     @pytest.mark.parametrize(
         "pdf_path,page_count,meeting_date",
         [
@@ -29,7 +31,7 @@ class TestParsePDF:
     def test_init(self, pdf_path, page_count, meeting_date):
 
         path = Path(pdf_path)
-        minutes = parse_pdf(path)
+        minutes = Minutes(path)
 
         assert page_count == minutes.page_count
         assert meeting_date == minutes.meeting_date
@@ -44,7 +46,7 @@ class TestParsePDF:
     def test_parse_pages(self, pdf_path, expected):
 
         path = Path(pdf_path)
-        minutes = parse_pdf(path)
+        minutes = Minutes(path)
 
         output = minutes.parse_pages()
 
@@ -66,7 +68,7 @@ class TestParsePDF:
     )
     def test_clean_text(self, pdf_path, expected):
         path = Path(pdf_path)
-        minutes = parse_pdf(path)
+        minutes = Minutes(path)
 
         raw_output = minutes.parse_pages()
         clean_output = minutes.clean_pages()
@@ -83,7 +85,33 @@ class TestParsePDF:
         assert clean_output == minutes.clean_text  # output matches attribute
         assert clean_output[:100] == expected  # output matches expected
 
-    def test_parse_pdf_error(self):
-        path = Path("tests/data/fake_name.pdf")
+
+class TestParsePDF:
+    """Tests the parse_pdf function which instantiates a Minutes object
+    then calls parse_pages() and clean_pages() methods"""
+
+    @pytest.mark.parametrize(
+        "pdf_path", ["tests/data/2010_03_17.pdf", "tests/data/2013_11_20.pdf"]
+    )
+    def test_parse_pdf(self, pdf_path):
+        path = Path(pdf_path)
         minutes = parse_pdf(path)
-        assert minutes is None
+
+        print(minutes.raw_text[:10])
+        print(minutes.clean_text[:10])
+
+        # checks that both parse_pages() and clean_pages() are run
+        assert minutes.clean_text is not None
+        assert minutes.raw_text is not None
+
+    @pytest.mark.parametrize(
+        "pdf_path,exception",
+        [
+            ("tests/data/fake_name.pdf", ValueError),
+            ("tests/data/fake_name2.pdf", FileNotFoundError),
+        ],
+    )
+    def test_parse_pdf_error(self, pdf_path, exception):
+        path = Path(pdf_path)
+        with pytest.raises(exception):
+            parse_pdf(path)
