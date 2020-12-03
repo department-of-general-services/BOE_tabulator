@@ -86,9 +86,4 @@ class TestParsePDF:
     def test_parse_pdf_error(self):
         path = Path("tests/data/fake_name.pdf")
         minutes = parse_pdf(path)
-        error = (
-            f"The following error occurred parsing file '{path}': time data "
-            f"'fake_name' does not match format '%Y_%m_%d'"
-        )
-        assert minutes == error
-        assert 0
+        assert minutes is None
