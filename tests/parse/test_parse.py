@@ -2,7 +2,8 @@ import pytest
 import PyPDF2
 from pathlib import Path
 
-from bike_rack.parse_utils import Minutes, parse_pdf, replace_chars, REPLACEMENTS
+from common.parse_utils import Minutes, parse_pdf, REPLACEMENTS
+from common.utils import replace_chars
 from tests.parse.parse_data import RAW_TEXT, CLEAN_TEXT
 
 

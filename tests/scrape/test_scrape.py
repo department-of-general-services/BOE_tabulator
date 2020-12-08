@@ -1,11 +1,17 @@
 import pytest
 from bs4 import BeautifulSoup
 from pprint import pprint
-from utils import month_match_lev, parse_long_dates, lev
 
 from tests.scrape.scrape_data import HTML_TEXT, YEAR_LINKS
 
-from utils import get_year_links, check_and_parse_page
+from common.utils import levenshtein_match, levenshtein
+from common.scrape_utils import (
+    get_year_links,
+    check_and_parse_page,
+    parse_long_dates,
+    MONTHS,
+)
+
 
 alphabet = "abcdefghijklmnopqrstuvwxyz"
 months = [
@@ -146,7 +152,7 @@ class TestGetParseMeetingDate:
         """Tests the Levenshtein distance algorithm created as a helper
         function for parse_long_date"""
 
-        distance = lev(word_a, word_b)
+        distance = levenshtein(word_a, word_b)
         assert distance == expected_distance
 
     @pytest.mark.parametrize(
@@ -307,7 +313,7 @@ class TestMonthSpellCheck:
 
         for month, month_dels in deletions.items():
             for deletion in month_dels:
-                match, score = month_match_lev(deletion)
+                match, score = levenshtein_match(deletion, MONTHS)
                 assert (
                     match == month
                 ), f"month={month}, match={match}, score={score}, del={deletion}"
@@ -334,7 +340,7 @@ class TestMonthSpellCheck:
                 ]:  # specific exception for special case we hope to never see
                     assert 1
                 else:
-                    match, score = month_match_lev(misspelling)
+                    match, score = levenshtein_match(misspelling, MONTHS)
                     assert match == month, (
                         f"month={month}, match={match}, score={score},"
                         f"misspell={misspelling}"
