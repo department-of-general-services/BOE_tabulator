@@ -2,21 +2,8 @@ import pytest
 import PyPDF2
 from pathlib import Path
 
-from common.parse_utils import Minutes, parse_pdf, REPLACEMENTS
-from common.utils import replace_chars
+from common.parse_utils import Minutes, parse_pdf
 from tests.parse.parse_data import RAW_TEXT, CLEAN_TEXT
-
-
-@pytest.mark.parametrize(
-    "text,expected", [("March 17, 2010", "March 17, 2010"), ("ﬁquotesﬂ", '"quotes"')]
-)
-def test_replace_chars(text, expected):
-    output = replace_chars(text, REPLACEMENTS)
-    print("OUTPUT")
-    print(output)
-    print("EXPECTED")
-    print(expected)
-    assert output == expected
 
 
 class TestMinutes:
