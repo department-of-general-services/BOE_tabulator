@@ -25,53 +25,33 @@ class TestMinutes:
         assert meeting_date == minutes.meeting_date
 
     @pytest.mark.parametrize(
-        "pdf_path,expected",
+        "pdf_path,raw,clean",
         [
-            ("tests/parse/2010_03_17.pdf", RAW_TEXT["2010"]),
-            ("tests/parse/2013_11_20.pdf", RAW_TEXT["2013"]),
+            ("tests/parse/2010_03_17.pdf", RAW_TEXT["2010"], CLEAN_TEXT["2010"]),
+            ("tests/parse/2013_11_20.pdf", RAW_TEXT["2013"], CLEAN_TEXT["2013"]),
         ],
     )
-    def test_parse_pages(self, pdf_path, expected):
+    def test_parse_and_clean_pages(self, pdf_path, raw, clean):
 
         path = Path(pdf_path)
         minutes = Minutes(path)
 
-        output = minutes.parse_pages()
-
-        print("OUTPUT")
-        print(output[:100])
-        print("EXPECTED")
-        print(expected)
-
-        assert minutes.raw_text == output
-        assert minutes.raw_text is not None
-        assert output[:100] == expected
-
-    @pytest.mark.parametrize(
-        "pdf_path,expected",
-        [
-            ("tests/parse/2010_03_17.pdf", CLEAN_TEXT["2010"]),
-            ("tests/parse/2013_11_20.pdf", CLEAN_TEXT["2013"]),
-        ],
-    )
-    def test_clean_text(self, pdf_path, expected):
-        path = Path(pdf_path)
-        minutes = Minutes(path)
-
-        raw_output = minutes.parse_pages()
-        clean_output = minutes.clean_pages()
+        minutes.parse_and_clean_pages()
 
         print("RAW OUTPUT")
-        print(raw_output[:100])
-        print("CLEAN OUTPUT")
-        print(clean_output[:100])
-        print("EXPECTED")
-        print(expected)
+        print(minutes.raw_text[:100])
+        print("RAW EXPECTED")
+        print(raw)
 
-        assert raw_output != clean_output  # raw and clean text are different
-        assert raw_output == minutes.raw_text  # raw text wasn't modified
-        assert clean_output == minutes.clean_text  # output matches attribute
-        assert clean_output[:100] == expected  # output matches expected
+        print("CLEAN OUTPUT")
+        print(minutes.clean_text[:100])
+        print("CLEAN EXPECTED")
+        print(clean)
+
+        assert minutes.raw_text is not None
+        assert minutes.clean_text is not None
+        assert minutes.raw_text[:100] == raw
+        assert minutes.clean_text[:100] == clean
 
 
 class TestParsePDF:

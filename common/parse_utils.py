@@ -44,8 +44,7 @@ def parse_pdf(pdf_path):
     """
     try:
         minutes = Minutes(pdf_path)
-        minutes.parse_pages()
-        minutes.clean_pages()
+        minutes.parse_and_clean_pages()
     except (ValueError, FileNotFoundError) as e:
         print(f"The following error occurred parsing file '{pdf_path}': {e}")
         raise e
@@ -126,9 +125,7 @@ class Minutes:
         in self.meeting_date and self.year
 
         Args:
-            pdf_path (pathlib.Path): Path to minutes file passed during
-            instantiation of the Minutes class, expected to end with a
-            */YYYY_MM_DD.pdf pattern
+            pdf_path (pathlib.Path): Path to pdf ending in */YYYY_MM_DD.pdf
         Returns:
             date (datetime.datetime): Returns a datetime object of the
             date parsed from the pdf_path that will be stored in self.date
@@ -137,32 +134,23 @@ class Minutes:
         date = dt.datetime.strptime(date_str, "%Y_%m_%d")
         return date
 
-    def parse_pages(self):
-        """Extracts text from pdf pages and stores it in self.raw_text
+    def parse_and_clean_pages(self):
+        """Extracts text from pdf pages and stores it in self.raw_text then
+        cleans the parsed text and stores the result in self.clean_text
 
         Args:
             self: Uses the self.reader object created by self.read_pdf()
         Returns:
-            raw_text (str): Returns the text parsed from the pdf pages as a
-            string and also stores that text in self.raw_text
+            N/A: Void function
         """
+
+        # extract the raw text
         text_raw = ""
         for page in self.reader.pages:
             text_raw += page.extractText().strip()
         self.raw_text = text_raw
-        return text_raw
 
-    def clean_pages(self):
-        """Cleans text stored in self.raw_text and stores the result in
-        self.clean_text
-
-        Args:
-            self: Uses self.raw_text from self.parse_pages()
-        Returns:
-            clean_text (str): Returns the text parsed from the pdf pages as a
-            string and also stores that text in self.clean_text
-        """
+        # clean the raw text
         clean_text = " ".join(self.raw_text.split())  # remove double spaces
         clean_text = replace_chars(clean_text, REPLACEMENTS)
         self.clean_text = clean_text
-        return clean_text
