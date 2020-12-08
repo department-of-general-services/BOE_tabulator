@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from pprint import pprint
 from utils import month_match_lev, parse_long_dates, lev
 
-from .data.pdf_download_data import HTML_TEXT, YEAR_LINKS
+from tests.scrape.scrape_data import HTML_TEXT, YEAR_LINKS
 
 from utils import get_year_links, check_and_parse_page
 

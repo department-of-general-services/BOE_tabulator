@@ -3,7 +3,7 @@ import PyPDF2
 from pathlib import Path
 
 from bike_rack.parse_utils import Minutes, parse_pdf, replace_chars, REPLACEMENTS
-from tests.data.parse_pdfs_data import RAW_TEXT, CLEAN_TEXT
+from tests.parse.parse_data import RAW_TEXT, CLEAN_TEXT
 
 
 @pytest.mark.parametrize(
@@ -24,8 +24,8 @@ class TestMinutes:
     @pytest.mark.parametrize(
         "pdf_path,page_count,meeting_date",
         [
-            ("tests/data/2010_03_17.pdf", 105, "2010-03-17"),
-            ("tests/data/2013_11_20.pdf", 209, "2013-11-20"),
+            ("tests/parse/2010_03_17.pdf", 105, "2010-03-17"),
+            ("tests/parse/2013_11_20.pdf", 209, "2013-11-20"),
         ],
     )
     def test_init(self, pdf_path, page_count, meeting_date):
@@ -39,8 +39,8 @@ class TestMinutes:
     @pytest.mark.parametrize(
         "pdf_path,expected",
         [
-            ("tests/data/2010_03_17.pdf", RAW_TEXT["2010"]),
-            ("tests/data/2013_11_20.pdf", RAW_TEXT["2013"]),
+            ("tests/parse/2010_03_17.pdf", RAW_TEXT["2010"]),
+            ("tests/parse/2013_11_20.pdf", RAW_TEXT["2013"]),
         ],
     )
     def test_parse_pages(self, pdf_path, expected):
@@ -62,8 +62,8 @@ class TestMinutes:
     @pytest.mark.parametrize(
         "pdf_path,expected",
         [
-            ("tests/data/2010_03_17.pdf", CLEAN_TEXT["2010"]),
-            ("tests/data/2013_11_20.pdf", CLEAN_TEXT["2013"]),
+            ("tests/parse/2010_03_17.pdf", CLEAN_TEXT["2010"]),
+            ("tests/parse/2013_11_20.pdf", CLEAN_TEXT["2013"]),
         ],
     )
     def test_clean_text(self, pdf_path, expected):
@@ -91,7 +91,7 @@ class TestParsePDF:
     then calls parse_pages() and clean_pages() methods"""
 
     @pytest.mark.parametrize(
-        "pdf_path", ["tests/data/2010_03_17.pdf", "tests/data/2013_11_20.pdf"]
+        "pdf_path", ["tests/parse/2010_03_17.pdf", "tests/parse/2013_11_20.pdf"]
     )
     def test_parse_pdf(self, pdf_path):
         path = Path(pdf_path)
@@ -107,8 +107,8 @@ class TestParsePDF:
     @pytest.mark.parametrize(
         "pdf_path,exception",
         [
-            ("tests/data/fake_name.pdf", ValueError),
-            ("tests/data/fake_name2.pdf", FileNotFoundError),
+            ("tests/parse/fake_name.pdf", ValueError),
+            ("tests/parse/fake_name2.pdf", FileNotFoundError),
         ],
     )
     def test_parse_pdf_error(self, pdf_path, exception):
