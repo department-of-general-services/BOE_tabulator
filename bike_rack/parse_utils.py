@@ -43,6 +43,24 @@ def replace_chars(text, replacement_list):
         text = text.replace(current, new)
     return text
 
+def parse_pdf(pdf_path):
+    """Parses the pdf of the minutes from a BOE meeting and cleans the text
+
+    Args:
+        pdf_path (pathlib.Path): The path to the pdf to parse
+    Returns:
+        minutes (Minutes): An instance of the Minutes class
+    """
+    try:
+        minutes = Minutes(pdf_path)
+        minutes.parse_pages()
+        minutes.clean_pages()
+    except (ValueError, FileNotFoundError) as e:
+        print(f"The following error occurred parsing file '{pdf_path}': {e}")
+        raise e
+    return minutes
+
+
 class Minutes:
     """Creates an object that represents the minutes for an individual BOE
     meeting. This object contains the methods used to parse the pdf and
@@ -53,10 +71,10 @@ class Minutes:
         self.pdf_path = pdf_path
         self.reader = self.read_pdf(pdf_path)
         self.page_count = self.reader.getNumPages()
+        self.raw_text = None
+        self.clean_text = None
         self.date = self.parse_date(pdf_path)
         self.meeting_date = self.date.strftime("%Y-%m-%d")
-        self.parsed_text = None
-
 
     def read_pdf(self, pdf_path):
         """Initializes a PdfFileReader instance from the PyPDF2 library that
@@ -91,17 +109,31 @@ class Minutes:
 
 
     def parse_pages(self):
-        """Extracts text from pdf pages and stores it in self.parsed_text
+        """Extracts text from pdf pages and stores it in self.raw_text
 
         Args:
             self: Uses the self.reader object created by self.read_pdf()
         Returns:
-            text (str): Returns the text parsed from the pdf pages as a string
-            and also stores that text in self.parsed_text
+            raw_text (str): Returns the text parsed from the pdf pages as a
+            string and also stores that text in self.raw_text
         """
         text_raw = ""
         for page in self.reader.pages:
             text_raw += page.extractText().strip()
-        text = replace_chars(text_raw, REPLACEMENTS)
-        self.parsed_text = text
-        return text
+        self.raw_text = text_raw
+        return text_raw
+
+    def clean_pages(self):
+        """Cleans text stored in self.raw_text and stores the result in
+        self.clean_text
+
+        Args:
+            self: Uses self.raw_text from self.parse_pages()
+        Returns:
+            clean_text (str): Returns the text parsed from the pdf pages as a
+            string and also stores that text in self.clean_text
+        """
+        clean_text = " ".join(self.raw_text.split()) # remove double spaces
+        clean_text = replace_chars(clean_text, REPLACEMENTS)
+        self.clean_text = clean_text
+        return clean_text
