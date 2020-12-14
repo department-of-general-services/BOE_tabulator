@@ -25,33 +25,32 @@ class TestMinutes:
         assert meeting_date == minutes.meeting_date
 
     @pytest.mark.parametrize(
-        "pdf_path,raw,clean",
+        "date,raw,clean",
         [
-            ("tests/parse/2010_03_17.pdf", RAW_TEXT["2010"], CLEAN_TEXT["2010"]),
-            ("tests/parse/2013_11_20.pdf", RAW_TEXT["2013"], CLEAN_TEXT["2013"]),
+            ("2010-03-17", RAW_TEXT["2010"], CLEAN_TEXT["2010"]),
+            ("2013-11-20", RAW_TEXT["2013"], CLEAN_TEXT["2013"]),
         ],
     )
-    def test_parse_and_clean_pages(self, pdf_path, raw, clean):
+    def test_parse_and_clean_pages(self, minutes, date, raw, clean):
 
-        path = Path(pdf_path)
-        minutes = Minutes(path)
+        min = minutes[date]
 
-        minutes.parse_and_clean_pages()
+        min.parse_and_clean_pages()
 
         print("RAW OUTPUT")
-        print(minutes.raw_text[:100])
+        print(min.raw_text[:100])
         print("RAW EXPECTED")
         print(raw)
 
         print("CLEAN OUTPUT")
-        print(minutes.clean_text[:100])
+        print(min.clean_text[:100])
         print("CLEAN EXPECTED")
         print(clean)
 
-        assert minutes.raw_text is not None
-        assert minutes.clean_text is not None
-        assert minutes.raw_text[:100] == raw
-        assert minutes.clean_text[:100] == clean
+        assert min.raw_text is not None
+        assert min.clean_text is not None
+        assert min.raw_text[:100] == raw
+        assert min.clean_text[:100] == clean
 
 
 class TestParsePDF:
