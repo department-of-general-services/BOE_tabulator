@@ -3,7 +3,7 @@ import PyPDF2
 from pathlib import Path
 
 from common.parse_utils import Minutes, parse_pdf
-from tests.parse.parse_data import RAW_TEXT, CLEAN_TEXT
+from tests.parse.parse_data import RAW_TEXT, CLEAN_TEXT, AGREEMENTS
 
 
 class TestMinutes:
@@ -51,6 +51,28 @@ class TestMinutes:
         assert min.clean_text is not None
         assert min.raw_text[:100] == raw
         assert min.clean_text[:100] == clean
+
+    @pytest.mark.parametrize(
+        "date,expected,count",
+        [
+            # ("2010-03-17", AGREEMENTS["2010"], 3),
+            # ("2013-11-20", AGREEMENTS["2013"], 3),
+            ("2020-01-15", AGREEMENTS["2020"], 3),
+        ],
+    )
+    def test_get_agreements(self, minutes, date, expected, count):
+        min = minutes[date]
+
+        min.get_agreements()
+
+        assert len(min.agreements) == count
+
+        for i, agreement in enumerate(min.agreements[:5]):
+            print(f"EXPECTED {i}")
+            print(expected[i])
+            print(f"OUTPUT {i}")
+            print(agreement[:5])
+        assert 0
 
 
 class TestParsePDF:

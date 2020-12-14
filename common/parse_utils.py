@@ -105,6 +105,7 @@ class Minutes:
         self.clean_text = None
         self.date = self.parse_date(pdf_path)
         self.meeting_date = self.date.strftime("%Y-%m-%d")
+        self.agreements = []
 
     def read_pdf(self, pdf_path):
         """Initializes a PdfFileReader instance from the PyPDF2 library that
@@ -159,3 +160,7 @@ class Minutes:
         clean_text = " ".join(self.raw_text.split())  # remove double spaces
         clean_text = replace_chars(clean_text, REPLACEMENTS)
         self.clean_text = clean_text
+
+    def get_agreements(self):
+
+        pass
