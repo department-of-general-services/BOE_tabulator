@@ -134,7 +134,7 @@ class Minutes:
         date = dt.datetime.strptime(date_str, "%Y_%m_%d")
         return date
 
-    def parse_and_clean_pages(self):
+    def parse_and_clean_pages(self, page_range=None):
         """Extracts text from pdf pages and stores it in self.raw_text then
         cleans the parsed text and stores the result in self.clean_text
 
@@ -146,8 +146,13 @@ class Minutes:
 
         # extract the raw text
         text_raw = ""
-        for page in self.reader.pages:
-            text_raw += page.extractText().strip()
+        if page_range:
+            for num in page_range:
+                page = self.reader.getPage(num)
+                text_raw += page.extractText().strip()
+        else:
+            for page in self.reader.pages:
+                text_raw += page.extractText().strip()
         self.raw_text = text_raw
 
         # clean the raw text
