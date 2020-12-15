@@ -1,9 +1,11 @@
 import pytest
 from bs4 import BeautifulSoup
 from pprint import pprint
+from copy import deepcopy
 
 from tests.scrape.scrape_data import HTML_TEXT, YEAR_LINKS, MEETING_LINKS
 
+from common.utils import del_dir_contents
 from common.scrape_utils import (
     get_year_links,
     check_and_parse_page,
@@ -163,6 +165,7 @@ class TestCheckFileList:
 
     def _create_pdf_files(self, dir, meeting_dict):
         """Helper function used to populate pdf_dir"""
+        files = []
         for year, meetings in meeting_dict.items():
             year_dir = dir / year
             year_dir.mkdir(exist_ok=True)
@@ -171,21 +174,57 @@ class TestCheckFileList:
                 pdf_file = year_dir / pdf_name
                 pdf_file.touch(exist_ok=True)
                 assert pdf_file.exists()
+                files.append(pdf_file)
+        return files
 
     def test_no_missing_pdfs(self, pdf_dir):
         """Tests that the function returns nothing when all pdfs are present"""
         # setup
-        self._create_pdf_files(pdf_dir, MEETING_LINKS)
-        # execution
-        missing_links = check_missing_pdfs(MEETING_LINKS, dir=pdf_dir)
-        # validation
-        assert missing_links == {}
+        pdf_files = self._create_pdf_files(pdf_dir, MEETING_LINKS)
+        for file in pdf_files:
+            assert file.exists()
 
-    def test_missing_pdf(self):
+        # execution
+        output = check_missing_pdfs(MEETING_LINKS, dir=pdf_dir)
+
+        # validation
+        assert not output
+
+    @pytest.mark.parametrize(
+        "year,date,link",
+        [
+            ("2020", "2020-01-15", "https://www.fake-path.com/2020-01-15"),
+            ("2019", "2019-01-09", "https://www.fake-path.com/2019-01-15"),
+        ],
+    )
+    def test_missing_pdf(self, pdf_dir, year, date, link):
         """Tests that function returns the list of pdfs that are missing
         from the directory"""
+        # input
+        missing_links = {year: {date: link}}
 
-        assert 1
+        # setup - create all but one pdf
+        keep_links = deepcopy(MEETING_LINKS)
+        del keep_links[year][date]  # removes one pdf from dict
+        del_dir_contents(pdf_dir)
+        pdf_files = self._create_pdf_files(pdf_dir, keep_links)
+        for file in pdf_files:
+            assert file.exists()
+        missing_name = date.replace("-", "_") + ".pdf"
+        missing_file = pdf_dir / missing_name
+        assert missing_file.exists() is False
+
+        # execution
+        print("INPUT")
+        pprint(MEETING_LINKS)
+        output = check_missing_pdfs(MEETING_LINKS, dir=pdf_dir)
+        print("OUTPUT")
+        pprint(output)
+        print("EXPECTED")
+        pprint(missing_links)
+
+        # validation
+        assert output == missing_links
 
     def test_extra_pdf(self):
         """Tests that function returns the file name of the pdf that isn't

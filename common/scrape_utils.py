@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import re
 from datetime import datetime
+from collections import defaultdict
 
 from common.utils import levenshtein_match
 
@@ -196,7 +197,7 @@ def check_missing_pdfs(meeting_links, dir=None):
         year_links (dict): dictionary with the years (2009, 2010, ...,
         current year) as keys and relative links as values
     """
-    missing_links = {}
+    missing_links = defaultdict(dict)
 
     if not dir:
         dir = Path.cwd() / "pdf_files"
