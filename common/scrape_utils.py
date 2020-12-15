@@ -182,3 +182,31 @@ def parse_long_dates(date_string):
     day = str(day).zfill(2)
 
     return True, "_".join([year, month, day])
+
+
+def check_missing_pdfs(meeting_links, dir=None):
+    """Checks the downloaded pdfs against a list of parsed meeting links and
+    returns any pdfs which are missing
+
+    Args:
+        start_soup (BeautifulSoup object): the beautifulsoup object that
+        parses the "landing page" for the minutes links
+
+    Returns:
+        year_links (dict): dictionary with the years (2009, 2010, ...,
+        current year) as keys and relative links as values
+    """
+    missing_links = {}
+
+    if not dir:
+        dir = Path.cwd() / "pdf_files"
+
+    for year, meetings in meeting_links.items():
+        year_dir = dir / year
+        for date, link in meetings.items():
+            pdf_name = date.replace("-", "_") + ".pdf"
+            pdf_file = year_dir / pdf_name
+            if not pdf_file.exists():
+                missing_links[year][date] = link
+
+    return missing_links

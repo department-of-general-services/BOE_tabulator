@@ -2,13 +2,13 @@ import pytest
 from bs4 import BeautifulSoup
 from pprint import pprint
 
-from tests.scrape.scrape_data import HTML_TEXT, YEAR_LINKS
+from tests.scrape.scrape_data import HTML_TEXT, YEAR_LINKS, MEETING_LINKS
 
-from common.utils import levenshtein_match, levenshtein
 from common.scrape_utils import (
     get_year_links,
     check_and_parse_page,
     parse_long_dates,
+    check_missing_pdfs,
     MONTHS,
 )
 
@@ -147,8 +147,8 @@ class TestGetParseMeetingDate:
         [(" ", "' ' is not a parseable date")],  # checks whitespace links
     )
     def test_fail_on_unparseable_date(self, input_date, error_message):
-        """Tests parse_long_dates() against the standard date format
-        plus all of the edge cases we've seen
+        """Tests that parse_long_dates() raises an error when it is passed
+        an unparseable date
         """
         parsed, output = parse_long_dates(input_date)
 
@@ -157,45 +157,34 @@ class TestGetParseMeetingDate:
 
 
 class TestCheckFileList:
-    """Tests check_file_list() which checks the list of downloaded pdfs
+    """Tests check_missing_pdfs() which checks the list of downloaded pdfs
     and returns a list of pdfs that still need to be downloaded
     """
 
-    def test_no_missing_pdfs(self):
-        """Tests that the function returns nothing when all pdfs are present
+    def _create_pdf_files(self, dir, meeting_dict):
+        """Helper function used to populate pdf_dir"""
+        for year, meetings in meeting_dict.items():
+            year_dir = dir / year
+            year_dir.mkdir(exist_ok=True)
+            for date in meetings:
+                pdf_name = date.replace("-", "_") + ".pdf"
+                pdf_file = year_dir / pdf_name
+                pdf_file.touch(exist_ok=True)
+                assert pdf_file.exists()
 
-        TEST DATA
-        - A list of file names to populate the temporary directory with
-        - A list of anchor tags to check the directory against
-
-        TEST SETUP
-        - Create a temporary directory to store the downloaded files
-          More information: https://docs.pytest.org/en/stable/tmpdir.html
-        - Populate the directory from the list of file names
-
-        ASSERTIONS
-        - assert that the the function returns nothing since all of the files
-          are already present in the directory
-        """
-        assert 1
+    def test_no_missing_pdfs(self, pdf_dir):
+        """Tests that the function returns nothing when all pdfs are present"""
+        # setup
+        self._create_pdf_files(pdf_dir, MEETING_LINKS)
+        # execution
+        missing_links = check_missing_pdfs(MEETING_LINKS, dir=pdf_dir)
+        # validation
+        assert missing_links == {}
 
     def test_missing_pdf(self):
         """Tests that function returns the list of pdfs that are missing
-        from the directory
+        from the directory"""
 
-        TEST DATA
-        - A list of file names to populate the temporary directory with
-        - A list of anchor tags to check the directory against
-
-        TEST SETUP
-        - Create a temporary directory to store the downloaded files
-          More information: https://docs.pytest.org/en/stable/tmpdir.html
-        - Populate the directory with all but one of the files from the list
-
-        ASSERTIONS
-        - assert that the the function returns the anchor tag associated with
-          the file that is missing from the directory
-        """
         assert 1
 
     def test_extra_pdf(self):
