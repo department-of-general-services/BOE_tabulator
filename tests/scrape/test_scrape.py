@@ -120,7 +120,7 @@ class TestGetMeetingLinks:
         assert 1
 
 
-class TestGetParseMeetingDate:
+class TestParseLongDates:
     """Tests parse_meeting_dates() which parses the meeting date from
     the anchor tags returned by the get_meeting_links() function
     """
@@ -159,7 +159,7 @@ class TestGetParseMeetingDate:
         assert output == error_message
 
 
-class TestCheckFileList:
+class TestCheckMissingPDFs:
     """Tests check_missing_pdfs() which checks the list of downloaded pdfs
     and returns a list of pdfs that still need to be downloaded
     """
