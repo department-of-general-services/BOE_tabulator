@@ -2,6 +2,7 @@ import pytest
 from bs4 import BeautifulSoup
 from pprint import pprint
 from copy import deepcopy
+from pathlib import Path
 
 from tests.scrape.scrape_data import HTML_TEXT, YEAR_LINKS, MEETING_LINKS
 
@@ -185,10 +186,11 @@ class TestCheckFileList:
             assert file.exists()
 
         # execution
-        output = check_missing_pdfs(MEETING_LINKS, dir=pdf_dir)
+        missing, extra = check_missing_pdfs(MEETING_LINKS, dir=pdf_dir)
 
         # validation
-        assert not output
+        assert not missing
+        assert not extra
 
     @pytest.mark.parametrize(
         "year,date,link",
@@ -217,34 +219,40 @@ class TestCheckFileList:
         # execution
         print("INPUT")
         pprint(MEETING_LINKS)
-        output = check_missing_pdfs(MEETING_LINKS, dir=pdf_dir)
+        missing, extra = check_missing_pdfs(MEETING_LINKS, dir=pdf_dir)
         print("OUTPUT")
-        pprint(output)
+        pprint(missing)
         print("EXPECTED")
         pprint(missing_links)
 
         # validation
-        assert output == missing_links
+        assert missing == missing_links
+        assert not extra
 
-    def test_extra_pdf(self):
+    def test_extra_pdf(self, pdf_dir):
         """Tests that function returns the file name of the pdf that isn't
-        in the list of anchor tags that are supposed to be in the directory
-
-        TEST DATA
-        - A list of file names to populate the temporary directory with
-        - A list of anchor tags to check the directory against
-
-        TEST SETUP
-        - Create a temporary directory to store the downloaded files
-          More information: https://docs.pytest.org/en/stable/tmpdir.html
-        - Populate the directory from the list of file names
-        - Add another file to the directory
-
-        ASSERTIONS
-        - assert that the the function returns the name of the file that isn't
-          in the list of the anchor tags
+        in the list of meetings that are supposed to be in the directory
         """
-        assert 1
+        # input
+        year = "2020"
+        date = "2020-01-15"
+        expected = {"2020_01_15.pdf"}
+
+        # setup
+        pdf_files = self._create_pdf_files(pdf_dir, MEETING_LINKS)
+        for file in pdf_files:
+            assert file.exists()
+        input_links = deepcopy(MEETING_LINKS)
+        del input_links[year][date]
+
+        # execution
+        print("INPUT")
+        pprint(input_links)
+        missing, extra = check_missing_pdfs(input_links, pdf_dir)
+
+        # validation
+        assert not missing
+        assert extra == expected
 
 
 class TestDownloadPDF:
