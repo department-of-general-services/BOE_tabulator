@@ -256,40 +256,24 @@ class TestCheckMissingPDFs:
 
 
 class TestDownloadPDF:
-    """Tests the function that downloads and stores any missing pdfs returned
-    by check_file_list() in the directory of downloaded pdfs
+    """Tests download_pdf() which downloads and stores any missing pdfs returned
+    by check_missing_pdfs() in the directory of downloaded pdfs
     """
 
-    def test_download(self):
+    def test_valid_url(self):
         """Tests the download of a pdf from a meeting link specified
         in the test data
-
-        TEST DATA
-        - An anchor tag which contains a link to a pdf of minutes
-
-        TEST SETUP
-        - Create a temporary directory to store the downloaded file
-          More information: https://docs.pytest.org/en/stable/tmpdir.html
-
-        ASSERTIONS
-        - assert that the file is downloaded without errors
-        - assert that the file has the correct filename
         """
         assert 1
 
-    def test_error_in_link(self):
-        """Tests error handling for a pdf link that has an issue with it
+    def test_non_pdf_url(self):
+        """Tests that the function returns False when given a url that doesn't
+        point to a pdf
+        """
+        assert 1
 
-        TEST DATA
-        - An anchor tag which contains a link to a pdf of minutes
-
-        TEST SETUP
-        - Create a temporary directory to store the downloaded file
-          More information: https://docs.pytest.org/en/stable/tmpdir.html
-        - Modify the link to cause a error that would prevent downloading
-
-        ASSERTIONS
-        - assert that the appropriate error message is raised when trying to
-          download the file specified by the link
+    def test_invalid_url(self):
+        """Tests that the function returns False when given a url that raises
+        an error when being requested
         """
         assert 1
