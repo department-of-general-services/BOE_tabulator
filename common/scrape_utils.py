@@ -192,9 +192,9 @@ def check_missing_pdfs(meeting_links, dir=None):
     expected_pdfs = set()
     downloaded_pdfs = set()
 
+    # sets the directory and checks if it it exists
     if not dir:
         dir = Path.cwd() / "pdf_files"
-
     if not dir.exists():
         return meeting_links, None
 
@@ -207,6 +207,7 @@ def check_missing_pdfs(meeting_links, dir=None):
             pdf_file = year_dir / pdf_name
             if not pdf_file.exists():
                 missing_links[year][date] = link
+
     # checks for any extra pdfs
     for sub in dir.iterdir():
         for pdf in sub.iterdir():
@@ -217,14 +218,20 @@ def check_missing_pdfs(meeting_links, dir=None):
 
 
 def download_pdf(year, date, url, dir=None):
-    if not dir:
-        dir = Path.cwd() / "pdf_files"
+    """Downloads a pdf from the given url and stores it in the sub-directory
+    for the year in which the meeting occurred
 
-    year_dir = dir / year
-    year_dir.mkdir(parents=True, exist_ok=True)
-    pdf_name = date.replace("-", "_") + ".pdf"
-    pdf_file = year_dir / pdf_name
+    Args:
+        year: Year in which the BOE meeting occurred
+        date: Date on which BOE meeting occurred, with format YYYY-MM-DD
+        url: Link to download the pdf of the minutes
 
+    Returns:
+        passed: Boolean value indicating if the download was successful
+        message: Message describing the error or success of the download
+        pdf_file: Path to downloaded file
+    """
+    # checks that url is valid
     try:
         response = requests.get(url)
     except requests.exceptions.RequestException as e:
@@ -237,7 +244,16 @@ def download_pdf(year, date, url, dir=None):
         error = f"The content stored at {url} is not a pdf"
         return False, error, None
 
+    # creates path to file
+    if not dir:
+        dir = Path.cwd() / "pdf_files"
+    year_dir = dir / year
+    pdf_name = date.replace("-", "_") + ".pdf"
+    pdf_file = year_dir / pdf_name
+
+    # creates the year directory and writes the file to it
     try:
+        year_dir.mkdir(parents=True, exist_ok=True)
         with open(pdf_file, "wb") as f:
             f.write(response.content)
     except TypeError as e:
