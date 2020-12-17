@@ -150,33 +150,22 @@ def parse_long_dates(date_string):
         day (str): The day as a string representing an int between 1 and 31
     """
 
-    date_regex = re.compile(r"([\w]*)\s+(\d{1,2})\D*(\d{4})", re.IGNORECASE)
-    date_re = date_regex.search(date_string)
+    # organizes date string into capture groups
+    month, date, year = r"(\w*)", r"(\d{1,2})", r"(\d{4})"
+    space, non_decimal = r"\s+", r"\D*"
+    date_regex = month + space + date + non_decimal + year
+    date_re = re.search(date_regex, date_string, re.IGNORECASE)
     if date_re is None:
         return False, f"'{date_string}' is not a parseable date"
-    """
-    This regex captures any long date formats
-
-    The components of the regex:
-        (\w*) - First capture group, one or more word chars to find month
-        \s - Space between month and date, not captured
-        (\d{1,2}) - Second capture group, one or two numbers to find date
-        \D* - Non decimal chars between date and year, not captured
-        (\d{4}) - Third capture group, string of four numbers to find year
-    """
-
-    # check for garbage at the end of the string
-    while not date_string[-1].isnumeric():
-        date_string = date_string[:-1]
 
     # grabs the month.lower() from the regex match of the date_string
     month_str = date_re.group(1).lower()
     month_str, score = levenshtein_match(month_str, MONTHS)
     month = str(MONTHS.index(month_str) + 1).zfill(2)
 
-    # grab the back of the string to get the year
-    year = date_re.group(3)  # grabs year from third capture group in regex
-    day = date_re.group(2)  # grabs day from second capture group in regex
+    # grabs year and day from the regex
+    year = date_re.group(3)
+    day = date_re.group(2)
 
     # converts year and day to string
     year = str(year)

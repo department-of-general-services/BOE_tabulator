@@ -133,6 +133,7 @@ class TestParseLongDates:
             ("April 6, 2020", "2020_04_06"),  # checks for zero padding
             ("une 17, 2019", "2019_06_17"),  # checks for single letter deletion
             ("Mrach 2, 2018", "2018_03_02"),  # checks for swapped letters
+            ("March 2, 2019D", "2019_03_02"),  # checks for excluding end char
         ],
     )
     def test_parse_long_dates(self, input_date, output_date):
