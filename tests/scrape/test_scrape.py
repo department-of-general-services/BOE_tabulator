@@ -278,6 +278,8 @@ class TestDownloadPDF:
 
         # execution
         passed, message, file = download_pdf(year, date, url, dir=pdf_dir)
+        print("ERROR")
+        print(message)
 
         # validation
         assert passed
@@ -300,6 +302,8 @@ class TestDownloadPDF:
 
         # execution
         passed, message, file = download_pdf(year, date, url, dir=pdf_dir)
+        print("ERROR")
+        print(message)
 
         # validation
         assert passed
@@ -307,14 +311,50 @@ class TestDownloadPDF:
         assert pdf_file.exists()
         assert file == pdf_file
 
-    def test_non_pdf_url(self):
+    def test_non_pdf_url(self, pdf_dir):
         """Tests that the function returns False when given a url that doesn't
         point to a pdf
         """
-        assert 1
+        # input
+        year = "2021"
+        date = "2021-01-20"
+        url = "https://www.google.com/"
 
-    def test_invalid_url(self):
+        # setup
+        del_dir_contents(pdf_dir)
+        assert is_empty(pdf_dir)
+        pdf_name = date.replace("-", "_") + ".pdf"
+        pdf_file = pdf_dir / year / pdf_name
+
+        # execution
+        passed, message, file = download_pdf(year, date, url, dir=pdf_dir)
+
+        # validation
+        assert not passed
+        assert file is None
+        assert pdf_file.exists() is False
+        assert message == f"The content stored at {url} is not a pdf"
+
+    def test_invalid_url(self, pdf_dir):
         """Tests that the function returns False when given a url that raises
         an error when being requested
         """
-        assert 1
+        # input
+        year = "2021"
+        date = "2021-01-20"
+        url = " "
+
+        # setup
+        del_dir_contents(pdf_dir)
+        assert is_empty(pdf_dir)
+        pdf_name = date.replace("-", "_") + ".pdf"
+        pdf_file = pdf_dir / year / pdf_name
+
+        # execution
+        passed, message, file = download_pdf(year, date, url, dir=pdf_dir)
+
+        # validation
+        assert not passed
+        assert file is None
+        assert pdf_file.exists() is False
+        assert message[:28] == "An error occurred requesting"

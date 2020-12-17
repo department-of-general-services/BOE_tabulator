@@ -233,10 +233,20 @@ def download_pdf(year, date, url, dir=None):
 
     year_dir = dir / year
     year_dir.mkdir(parents=True, exist_ok=True)
-
     pdf_name = date.replace("-", "_") + ".pdf"
     pdf_file = year_dir / pdf_name
-    response = requests.get(url)
+
+    try:
+        response = requests.get(url)
+    except requests.exceptions.RequestException as e:
+        error = f"An error occurred requesting {url}: {e}"
+        return False, error, None
+
+    # checks that the response is a pdf
+    content_type = response.headers["content-type"]
+    if "pdf" not in content_type:
+        error = f"The content stored at {url} is not a pdf"
+        return False, error, None
 
     try:
         with open(pdf_file, "wb") as f:
