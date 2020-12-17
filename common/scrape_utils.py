@@ -225,3 +225,25 @@ def check_missing_pdfs(meeting_links, dir=None):
     extra_pdfs = downloaded_pdfs - expected_pdfs
 
     return missing_links, extra_pdfs
+
+
+def download_pdf(year, date, url, dir=None):
+    if not dir:
+        dir = Path.cwd() / "pdf_files"
+
+    year_dir = dir / year
+    year_dir.mkdir(parents=True, exist_ok=True)
+
+    pdf_name = date.replace("-", "_") + ".pdf"
+    pdf_file = year_dir / pdf_name
+    response = requests.get(url)
+
+    try:
+        with open(pdf_file, "wb") as f:
+            f.write(response.content)
+    except TypeError as e:
+        error = f"An error occurred with url {url}: {e}"
+        return False, error, None
+
+    message = f"Successfully saved pdf from {url}"
+    return True, message, pdf_file

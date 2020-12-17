@@ -6,12 +6,13 @@ from pathlib import Path
 
 from tests.scrape.scrape_data import HTML_TEXT, YEAR_LINKS, MEETING_LINKS
 
-from common.utils import del_dir_contents
+from common.utils import del_dir_contents, is_empty
 from common.scrape_utils import (
     get_year_links,
     check_and_parse_page,
     parse_long_dates,
     check_missing_pdfs,
+    download_pdf,
     MONTHS,
 )
 
@@ -260,11 +261,51 @@ class TestDownloadPDF:
     by check_missing_pdfs() in the directory of downloaded pdfs
     """
 
-    def test_valid_url(self):
+    def test_valid_url(self, pdf_dir):
         """Tests the download of a pdf from a meeting link specified
         in the test data
         """
-        assert 1
+        # input
+        year = "2021"
+        date = "2021-01-20"
+        url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+
+        # setup
+        del_dir_contents(pdf_dir)
+        assert is_empty(pdf_dir)
+        pdf_name = date.replace("-", "_") + ".pdf"
+        pdf_file = pdf_dir / year / pdf_name
+
+        # execution
+        passed, message, file = download_pdf(year, date, url, dir=pdf_dir)
+
+        # validation
+        assert passed
+        assert file is not None
+        assert pdf_file.exists()
+        assert file == pdf_file
+
+    def test_missing_pdf_dir(self, pdf_dir):
+        # input
+        year = "2021"
+        date = "2021-01-20"
+        url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+
+        # setup
+        del_dir_contents(pdf_dir)
+        pdf_dir.rmdir()
+        assert pdf_dir.exists() is False
+        pdf_name = date.replace("-", "_") + ".pdf"
+        pdf_file = pdf_dir / year / pdf_name
+
+        # execution
+        passed, message, file = download_pdf(year, date, url, dir=pdf_dir)
+
+        # validation
+        assert passed
+        assert file is not None
+        assert pdf_file.exists()
+        assert file == pdf_file
 
     def test_non_pdf_url(self):
         """Tests that the function returns False when given a url that doesn't
