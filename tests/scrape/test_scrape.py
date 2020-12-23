@@ -184,8 +184,7 @@ class TestCheckMissingPDFs:
         """Tests that the function returns nothing when all pdfs are present"""
         # setup
         pdf_files = self._create_pdf_files(pdf_dir, MEETING_LINKS)
-        for file in pdf_files:
-            assert file.exists()
+        print(pdf_files)
 
         # execution
         missing, extra = check_missing_pdfs(MEETING_LINKS, dir=pdf_dir)
