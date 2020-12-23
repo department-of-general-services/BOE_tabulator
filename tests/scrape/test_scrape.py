@@ -336,14 +336,16 @@ class TestDownloadPDF:
         assert pdf_file.exists() is False
         assert message == f"The content stored at {url} is not a pdf"
 
-    def test_invalid_url(self, pdf_dir):
+    @pytest.mark.parametrize(
+        "url", [" ", "https://requests.readthedocs.io/quickstart/barney"]
+    )
+    def test_invalid_url(self, pdf_dir, url):
         """Tests that the function returns False when given a url that raises
         an error when being requested
         """
         # input
         year = "2021"
         date = "2021-01-20"
-        url = " "
 
         # setup
         del_dir_contents(pdf_dir)
@@ -353,6 +355,8 @@ class TestDownloadPDF:
 
         # execution
         passed, message, file = download_pdf(year, date, url, dir=pdf_dir)
+        print("ERROR")
+        print(message)
 
         # validation
         assert not passed

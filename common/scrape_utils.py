@@ -234,6 +234,7 @@ def download_pdf(year, date, url, dir=None):
     # checks that url is valid
     try:
         response = requests.get(url)
+        response.raise_for_status()
     except requests.exceptions.RequestException as e:
         error = f"An error occurred requesting {url}: {e}"
         return False, error, None
