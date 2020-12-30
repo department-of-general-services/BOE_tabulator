@@ -22,6 +22,7 @@ YEAR_LINKS = {
     "2009": "/minutes-2009",
 }
 
+# input to check_missing_pdfs()
 MEETING_LINKS = {
     "2020": {
         "2020-01-15": "https://www.fake-path.com/2020-01-15",
@@ -32,3 +33,5 @@ MEETING_LINKS = {
         "2019-01-16": "https://www.fake-path.com/2019-01-08",
     },
 }
+
+# output of
