@@ -1,8 +1,10 @@
-from .sample_boe_page import HTML_TEXT
+from pathlib import Path
 
 # static sample of html text used for testing, scraped from
 # https://comptroller.baltimorecity.gov/boe/meetings/minutes
-SAMPLE_HTML = HTML_TEXT
+html_path = Path.cwd() / "tests" / "scrape" / "sample_boe_page.html"
+with open(html_path, "r") as file:
+    HTML_TEXT = file.read()
 
 # Example set of expected year links pulled from HTML_TEXT
 YEAR_LINKS = {
