@@ -77,7 +77,7 @@ def store_boe_pdfs(base_url, minutes_url):
                 link.get_text().strip().encode("ascii", "ignore").decode("utf-8")
             )
             # handle cases where the date is written out in long form
-            parsed, pdf_date = parse_long_dates(pdf_html_text)
+            parsed, pdf_date = parse_meeting_date(pdf_html_text)
             if not parsed:
                 print(pdf_date)  # error message
                 continue
@@ -138,7 +138,7 @@ def get_year_links(start_soup):
     return year_links
 
 
-def parse_long_dates(date_string):
+def parse_meeting_date(date_string):
     """Extracts three simple strings representing the year, month, and day
     from a date in the  in the long format like 'November 19, 2010'.
 
