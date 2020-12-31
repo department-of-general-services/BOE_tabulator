@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from pprint import pprint
 from copy import deepcopy
 
-from tests.scrape.scrape_data import MINUTE_LINKS
+from tests.scrape.scrape_data import LINKS_2017
 
 from common.scrape_utils import get_meeting_links
 

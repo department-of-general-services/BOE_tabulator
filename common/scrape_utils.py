@@ -23,6 +23,8 @@ MONTHS = (
     "december",
 )
 
+BASE_URL = "https//comptroller.baltimorecity.gov"
+
 
 def store_boe_pdfs(base_url, minutes_url):
     """Finds .pdf files stored at the given url and stores them within the
@@ -124,17 +126,20 @@ def get_year_links(start_soup):
 
     Returns:
         year_links (dict): dictionary with the years (2009, 2010, ...,
-        current year) as keys and relative links as values
+        current year) as keys and absolute links as values
     """
     # this eliminates the need to specify the years to grab since
     # four-digit years are used consistently
     year_tags = start_soup.find_all(
         "a", href=True, text=re.compile(r"^20\d{2}$")
     )  # find the tags that link to the minutes for specific years
-    year_links = {
-        tag.string: tag.get("href") for tag in year_tags
-    }  # extracting the links
-
+    year_links = {}
+    for tag in year_tags:
+        year = tag.string
+        link = tag.get("href")
+        if not link.startswith(BASE_URL):
+            link = BASE_URL + link  # converts relative links to absolute
+        year_links[year] = link
     return year_links
 
 
@@ -263,3 +268,7 @@ def download_pdf(year, date, url, dir=None):
 
     message = f"Successfully saved pdf from {url}"
     return True, message, pdf_file
+
+
+def get_meeting_links(soup):
+    pass
