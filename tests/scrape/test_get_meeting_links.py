@@ -6,7 +6,7 @@ from copy import deepcopy
 
 from tests.scrape.scrape_data import HTML_TEXT, LINKS_2017
 
-from common.scrape_utils import get_meeting_links
+from common.scrape_utils import get_meeting_links, get_boe_pdfs
 
 
 class TestGetMeetingLinks:
@@ -27,7 +27,7 @@ class TestGetMeetingLinks:
         print(absolute_links)
 
         # execution
-        output = get_meeting_links(soup)
+        output = get_meeting_links(soup, url="https://www.google.com")
         pprint(output)
 
         # validation

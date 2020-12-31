@@ -26,6 +26,55 @@ MONTHS = (
 BASE_URL = "https://comptroller.baltimorecity.gov"
 
 
+def get_boe_pdfs(minutes_url, base_url=BASE_URL):
+    """Finds .pdf files stored at the given url and stores them within the
+    repository for later analysis.
+    Args:
+        base_url (str): The main url for the Comptroller of Baltimore's webiste
+        minutes_url (str): The url where the function can find links to
+            pages of pdf files organized by year
+    Returns:
+        None: This is a void function.
+    """
+
+    # get the links to each year of BOE meetings
+    checks, boe_page = check_and_parse_page(minutes_url)
+    if checks["fail"]:
+        print(f"Encountered an issue accessing {minutes_url}")
+        print(f"Exiting due to the following error: {checks['error_message']}")
+        return
+    year_links = get_year_links(boe_page)
+
+    # get the links to the minutes for each meeting
+    meeting_links = {}
+    for year, link in year_links:
+        checks, page = check_and_parse_page(link)
+        if checks["fail"]:
+            print(f"Encountered an issue accessing {link}")
+            print(f"Skipping {year} due to error: {checks['error_message']}")
+            continue
+        meetings = get_meeting_links(page, link)
+        meeting_links[year] = meetings
+
+    # check which meetings still need to be downloaded
+    missing_pdfs, extra_pdfs = check_missing_pdfs(meeting_links)
+    if extra_pdfs:
+        print(f"These extra pdfs were found in the directory {extra_pdfs}")
+
+    # download missing pdfs
+    counter = 0
+    for year, meetings in missing_pdfs:
+        for date, link in meetings:
+            passed, message, file = download_pdf(year, date, link)
+            if not passed:
+                print(message)
+                continue
+            else:
+                counter += 1
+    print(f"Wrote {counter} .pdf files to local repo.")
+    return
+
+
 def store_boe_pdfs(base_url, minutes_url):
     """Finds .pdf files stored at the given url and stores them within the
     repository for later analysis.
@@ -277,7 +326,7 @@ def download_pdf(year, date, url, dir=None):
     return True, message, pdf_file
 
 
-def get_meeting_links(soup):
+def get_meeting_links(soup, url):
 
     meeting_links = {}
     meeting_tags = soup.find_all(name="a", href=re.compile("files"))
@@ -287,7 +336,7 @@ def get_meeting_links(soup):
         date_str = tag.text.strip().encode("ascii", "ignore").decode("utf-8")
         passed, date, e = parse_meeting_date(date_str)
         if not passed:
-            error = f"There was an issue parsing tag {tag}: {e}"
+            error = f"There was an issue parsing tag {tag} on page {url}: {e}"
             print(error)
             continue
 
