@@ -214,7 +214,7 @@ def check_missing_pdfs(meeting_links, dir=None):
     for year, meetings in meeting_links.items():
         year_dir = dir / year
         for date, link in meetings.items():
-            pdf_name = date.replace("-", "_") + ".pdf"
+            pdf_name = date + ".pdf"
             expected_pdfs.add(pdf_name)
             pdf_file = year_dir / pdf_name
             if not pdf_file.exists():
@@ -261,7 +261,7 @@ def download_pdf(year, date, url, dir=None):
     if not dir:
         dir = Path.cwd() / "pdf_files"
     year_dir = dir / year
-    pdf_name = date.replace("-", "_") + ".pdf"
+    pdf_name = date + ".pdf"
     pdf_file = year_dir / pdf_name
 
     # creates the year directory and writes the file to it

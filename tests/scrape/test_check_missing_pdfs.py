@@ -21,7 +21,7 @@ class TestCheckMissingPDFs:
             year_dir = dir / year
             year_dir.mkdir(exist_ok=True)
             for date in meetings:
-                pdf_name = date.replace("-", "_") + ".pdf"
+                pdf_name = date + ".pdf"
                 pdf_file = year_dir / pdf_name
                 pdf_file.touch(exist_ok=True)
                 assert pdf_file.exists()
@@ -44,8 +44,8 @@ class TestCheckMissingPDFs:
     @pytest.mark.parametrize(
         "year,date,link",
         [
-            ("2020", "2020-01-15", "https://www.fake-path.com/2020-01-15"),
-            ("2019", "2019-01-09", "https://www.fake-path.com/2019-01-15"),
+            ("2020", "2020_01_15", "https://www.fake-path.com/2020-01-15"),
+            ("2019", "2019_01_09", "https://www.fake-path.com/2019-01-15"),
         ],
     )
     def test_missing_pdf(self, pdf_dir, year, date, link):
@@ -61,7 +61,7 @@ class TestCheckMissingPDFs:
         pdf_files = self._create_pdf_files(pdf_dir, keep_links)
         for file in pdf_files:
             assert file.exists()
-        missing_name = date.replace("-", "_") + ".pdf"
+        missing_name = date + ".pdf"
         missing_file = pdf_dir / missing_name
         assert missing_file.exists() is False
 
@@ -84,7 +84,7 @@ class TestCheckMissingPDFs:
         """
         # input
         year = "2020"
-        date = "2020-01-15"
+        date = "2020_01_15"
         expected = {"2020_01_15.pdf"}
 
         # setup

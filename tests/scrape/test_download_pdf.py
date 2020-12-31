@@ -15,13 +15,13 @@ class TestDownloadPDF:
         """
         # input
         year = "2021"
-        date = "2021-01-20"
+        date = "2021_01_20"
         url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
 
         # setup
         del_dir_contents(pdf_dir)
         assert is_empty(pdf_dir)
-        pdf_name = date.replace("-", "_") + ".pdf"
+        pdf_name = date + ".pdf"
         pdf_file = pdf_dir / year / pdf_name
 
         # execution
@@ -32,20 +32,23 @@ class TestDownloadPDF:
         # validation
         assert passed
         assert file is not None
+        assert pdf_name == "2021_01_20.pdf"
         assert pdf_file.exists()
         assert file == pdf_file
 
     def test_missing_pdf_dir(self, pdf_dir):
+        """Tests that pdf the directory is created and the pdf is downloaded
+        when the directory for donwloads is missing"""
         # input
         year = "2021"
-        date = "2021-01-20"
+        date = "2021_01_20"
         url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
 
         # setup
         del_dir_contents(pdf_dir)
         pdf_dir.rmdir()
         assert pdf_dir.exists() is False
-        pdf_name = date.replace("-", "_") + ".pdf"
+        pdf_name = date + ".pdf"
         pdf_file = pdf_dir / year / pdf_name
 
         # execution
@@ -57,6 +60,7 @@ class TestDownloadPDF:
         assert passed
         assert file is not None
         assert pdf_file.exists()
+        assert pdf_name == "2021_01_20.pdf"
         assert file == pdf_file
 
     def test_non_pdf_url(self, pdf_dir):
@@ -65,13 +69,13 @@ class TestDownloadPDF:
         """
         # input
         year = "2021"
-        date = "2021-01-20"
+        date = "2021_01_20"
         url = "https://www.google.com/"
 
         # setup
         del_dir_contents(pdf_dir)
         assert is_empty(pdf_dir)
-        pdf_name = date.replace("-", "_") + ".pdf"
+        pdf_name = date + ".pdf"
         pdf_file = pdf_dir / year / pdf_name
 
         # execution
@@ -97,7 +101,7 @@ class TestDownloadPDF:
         # setup
         del_dir_contents(pdf_dir)
         assert is_empty(pdf_dir)
-        pdf_name = date.replace("-", "_") + ".pdf"
+        pdf_name = date + ".pdf"
         pdf_file = pdf_dir / year / pdf_name
 
         # execution
