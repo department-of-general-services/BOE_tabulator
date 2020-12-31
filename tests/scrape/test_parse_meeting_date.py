@@ -22,22 +22,29 @@ class TestParseMeetingDate:
         """Tests parse_meeting_date() against the standard date format
         plus all of the edge cases we've seen
         """
-        parsed, date = parse_meeting_date(input_date)
+        # setup
+        expected = f"Successfully parsed {input_date} into {output_date}"
 
+        # execution
+        parsed, date, message = parse_meeting_date(input_date)
         print(f"date {date}")
 
         assert date == output_date
         assert parsed
+        assert message == expected
 
-    @pytest.mark.parametrize(
-        "input_date,error_message",
-        [(" ", "' ' is not a parseable date")],  # checks whitespace links
-    )
-    def test_fail_on_unparseable_date(self, input_date, error_message):
+    def test_fail_on_unparseable_date(self):
         """Tests that parse_meeting_date() raises an error when it is passed
         an unparseable date
         """
-        parsed, output = parse_meeting_date(input_date)
+        # setup
+        input_date = " "
+        expected_error = "' ' is not a parseable date"
 
+        # execution
+        parsed, date, message = parse_meeting_date(input_date)
+
+        # validation
         assert not parsed
-        assert output == error_message
+        assert date is None
+        assert message == expected_error

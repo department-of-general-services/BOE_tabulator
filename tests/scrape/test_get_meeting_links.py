@@ -32,4 +32,3 @@ class TestGetMeetingLinks:
 
         # validation
         assert output == expected
-        assert 0

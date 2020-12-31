@@ -23,7 +23,7 @@ MONTHS = (
     "december",
 )
 
-BASE_URL = "https//comptroller.baltimorecity.gov"
+BASE_URL = "https://comptroller.baltimorecity.gov"
 
 
 def store_boe_pdfs(base_url, minutes_url):
@@ -150,9 +150,9 @@ def parse_meeting_date(date_string):
     Args:
         date_string (str): The date in 'long' format
     Returns:
-        year (str): The year as a four-character string
-        month (str): The month as a string representing an int between 1 and 12
-        day (str): The day as a string representing an int between 1 and 31
+        passed: Boolean indicated whether or not the date was parsed
+        date: Date parsed into format 'YYYY_MM_DD'
+        message: Indicating the success or failure of parsing the date
     """
 
     # organizes date string into capture groups
@@ -160,8 +160,11 @@ def parse_meeting_date(date_string):
     space, non_decimal = r"\s+", r"\D*"
     date_regex = month + space + date + non_decimal + year
     date_re = re.search(date_regex, date_string, re.IGNORECASE)
+
+    # check that date is parseable
     if date_re is None:
-        return False, f"'{date_string}' is not a parseable date"
+        error = f"'{date_string}' is not a parseable date"
+        return False, None, error
 
     # grabs the month.lower() from the regex match of the date_string
     month_str = date_re.group(1).lower()
@@ -176,7 +179,11 @@ def parse_meeting_date(date_string):
     year = str(year)
     day = str(day).zfill(2)
 
-    return True, "_".join([year, month, day])
+    # puts date into YYYY_MM_DD format
+    date = "_".join([year, month, day])
+    message = f"Successfully parsed {date_string} into {date}"
+
+    return True, date, message
 
 
 def check_missing_pdfs(meeting_links, dir=None):
@@ -271,4 +278,29 @@ def download_pdf(year, date, url, dir=None):
 
 
 def get_meeting_links(soup):
-    pass
+
+    meeting_links = {}
+    meeting_tags = soup.find_all(name="a", href=re.compile("files"))
+
+    for tag in meeting_tags:
+        # parse the date
+        date_str = tag.text.strip().encode("ascii", "ignore").decode("utf-8")
+        passed, date, e = parse_meeting_date(date_str)
+        if not passed:
+            error = f"There was an issue parsing tag {tag}: {e}"
+            print(error)
+            continue
+
+        # extract link
+        link = tag.get("href")
+        if not link.startswith(BASE_URL):
+            link = BASE_URL + link  # converts relative links to absolute
+
+        # checks for duplicate dates
+        # if they exist appends "meeting2" etc to date
+        duplicates = [d for d in meeting_links.keys() if d.startswith(date)]
+        if duplicates:
+            date = date + f"_meeting{len(duplicates)+1}"
+        meeting_links[date] = link
+
+    return meeting_links
