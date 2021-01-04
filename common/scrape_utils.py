@@ -271,8 +271,9 @@ def check_missing_pdfs(meeting_links, dir=None):
 
     # checks for any extra pdfs
     for sub in dir.iterdir():
-        for pdf in sub.iterdir():
-            downloaded_pdfs.add(pdf.name)
+        if sub.is_dir():
+            for pdf in sub.iterdir():
+                downloaded_pdfs.add(pdf.name)
     extra_pdfs = downloaded_pdfs - expected_pdfs
 
     return missing_links, extra_pdfs

@@ -102,3 +102,21 @@ class TestCheckMissingPDFs:
         # validation
         assert not missing
         assert extra == expected
+
+    def test_non_dir_item(self, pdf_dir):
+        """Tests that a non directory item at the top level pdf_dir won't throw
+        an error when checking for extra pdfs
+        """
+        # setup
+        pdf_files = self._create_pdf_files(pdf_dir, MEETING_LINKS)
+        extra_file = pdf_dir / "extra.txt"
+        print(pdf_files)
+        extra_file.touch()
+        assert extra_file.exists()
+
+        # execution
+        missing, extra = check_missing_pdfs(MEETING_LINKS, dir=pdf_dir)
+
+        # validation
+        assert not missing
+        assert not extra
