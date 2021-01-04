@@ -34,24 +34,24 @@ def get_boe_pdfs(minutes_url, base_url=BASE_URL):
         minutes_url (str): The url where the function can find links to
             pages of pdf files organized by year
     Returns:
-        None: This is a void function.
+        missing_pdsf: The dictionary of pdfs that were downloaded
     """
 
     # get the links to each year of BOE meetings
-    checks, boe_page = check_and_parse_page(minutes_url)
-    if checks["fail"]:
-        print(f"Encountered an issue accessing {minutes_url}")
-        print(f"Exiting due to the following error: {checks['error_message']}")
+    passed, error, boe_page = check_and_parse_page(minutes_url)
+    if not passed:
+        print(error)
         return
     year_links = get_year_links(boe_page)
+    if not year_links:
+        print(f"No year links found at {minutes_url}")
 
     # get the links to the minutes for each meeting
     meeting_links = {}
-    for year, link in year_links:
-        checks, page = check_and_parse_page(link)
-        if checks["fail"]:
-            print(f"Encountered an issue accessing {link}")
-            print(f"Skipping {year} due to error: {checks['error_message']}")
+    for year, link in year_links.items():
+        passed, error, page = check_and_parse_page(link)
+        if not passed:
+            print(error)
             continue
         meetings = get_meeting_links(page, link)
         meeting_links[year] = meetings
@@ -60,19 +60,24 @@ def get_boe_pdfs(minutes_url, base_url=BASE_URL):
     missing_pdfs, extra_pdfs = check_missing_pdfs(meeting_links)
     if extra_pdfs:
         print(f"These extra pdfs were found in the directory {extra_pdfs}")
+    if not missing_pdfs:
+        print("No new BOE minutes to download")
+        return None
 
     # download missing pdfs
     counter = 0
-    for year, meetings in missing_pdfs:
-        for date, link in meetings:
-            passed, message, file = download_pdf(year, date, link)
+    downloaded_pdfs = defaultdict(list)
+    for year, meetings in missing_pdfs.items():
+        for date, link in meetings.items():
+            passed, error, file = download_pdf(year, date, link)
             if not passed:
-                print(message)
+                print(error)
                 continue
             else:
+                downloaded_pdfs[year].append(file.name)
                 counter += 1
-    print(f"Wrote {counter} .pdf files to local repo.")
-    return
+    print(f"Wrote {counter} pdf files to local repo.")
+    return downloaded_pdfs
 
 
 def store_boe_pdfs(base_url, minutes_url):
