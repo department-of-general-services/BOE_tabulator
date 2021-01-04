@@ -11,36 +11,30 @@ class TestCheckAndParsePage:
     object of the parsed html
     """
 
-    @pytest.mark.parametrize(
-        "url, expected",
-        [
-            (
-                "https://comptroller.baltimorecity.gov/boe/meetings/minutes",
-                {
-                    "pass": ["request", "html_parsing"],
-                    "fail": [],
-                    "error_message": None,
-                },
-            ),
-            (
-                "https://comptroller.baltimorecity.gov/boe/fake-path",
-                {"pass": [], "fail": ["request"], "error_message": "Not Found"},
-            ),
-        ],
-    )
-    def test_check_and_parse_page(self, url, expected):
-        """Tests check_and_parse_page() with several different urls"""
+    def test_success(self):
+        """Tests against a successful link"""
+        # setup
+        url = "https://comptroller.baltimorecity.gov/boe/meetings/minutes"
+        expected = f"'{url}' was successfully requested and parsed"
 
-        # runs function on input url and captures return values
-        checks, soup = check_and_parse_page(url)
+        # execution
+        passed, message, soup = check_and_parse_page(url)
 
-        # checks that the checks returned by the function match expected
-        print("EXPECTED")
-        pprint(expected)
-        print("OUTPUT")
-        pprint(checks)
-        assert checks == expected
+        # validation
+        assert passed
+        assert message == expected
+        assert soup is not None
 
-        # checks that the soupified page is returned
-        if "html_parsing" in checks["pass"]:
-            assert soup is not None
+    def test_request_fail(self):
+        """Tests against a nonexistant link"""
+        # setup
+        url = "https://comptroller.baltimorecity.gov/boe/fake-path"
+        expected = f"Encountered an issue accessing '{url}': Not Found"
+
+        # execution
+        passed, message, soup = check_and_parse_page(url)
+
+        # validation
+        assert not passed
+        assert message == expected
+        assert soup is None

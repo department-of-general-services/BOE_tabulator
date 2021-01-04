@@ -144,27 +144,26 @@ def store_boe_pdfs(base_url, minutes_url):
 
 
 def check_and_parse_page(url):
-    response = requests.get(url)
-    checks = {"pass": [], "fail": []}
+    """Tries to requests and parses a url into a BeautifulSoup object
 
+    Args:
+        url: Link to the page to request and parse
+    Returns:
+        passed: Boolean indicating whether or not the checks passed
+        message: Message indicating either the success or error
+        soup: BeautifulSoup object of the parsed page
+    """
     # checks if request went through successfully
-    if response.status_code == 200:
-        checks["pass"].append("request")
-    else:
-        checks["fail"].append("request")
-        checks["error_message"] = response.reason
-        return checks, None
+    response = requests.get(url)
+    if not response.status_code == 200:
+        error = f"Encountered an issue accessing '{url}': {response.reason}"
+        return False, error, None
 
-    # tries to parse HTML from response text
-    # Note: I've removed the try-except logic since no one has seen the error
-    # we're trying to catch. If we get a parse error in the future, then
-    # let's note the exception, restore the try-except, and catch it
+    # parses HTML from response text
     soup = BeautifulSoup(response.text, "html.parser")
-    checks["pass"].append("html_parsing")
 
-    # if all checks pass set error message to none and return checks
-    checks["error_message"] = None
-    return checks, soup
+    message = f"'{url}' was successfully requested and parsed"
+    return True, message, soup
 
 
 def get_year_links(start_soup):
