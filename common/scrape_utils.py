@@ -80,74 +80,6 @@ def get_boe_pdfs(minutes_url, base_url=BASE_URL):
     return downloaded_pdfs
 
 
-def store_boe_pdfs(base_url, minutes_url):
-    """Finds .pdf files stored at the given url and stores them within the
-    repository for later analysis.
-    Args:
-        base_url (str): The main url for the Comptroller of Baltimore's webiste
-        minutes_url (str): The url where the function can find links to
-            pages of pdf files organized by year
-    Returns:
-        None: This is a void function.
-    """
-
-    checks, soup = check_and_parse_page(minutes_url)
-    if checks["fail"]:
-        print(f"Encountered an issue accessing {minutes_url}")
-        print(f"Exiting due to the following error: {checks['error_message']}")
-        return
-    root = Path.cwd()
-    pdf_dir = root / "pdf_files"
-    total_counter = 0
-
-    if not pdf_dir.is_dir():
-        pdf_dir.mkdir(parents=True, exist_ok=False)
-
-    year_links = get_year_links(soup)
-
-    for year in year_links.keys():
-        # make a directory for the files
-        save_path = pdf_dir / str(year)
-        save_path.mkdir(parents=True, exist_ok=True)
-        # find all links where the associated text contains the year
-        link = soup.find("a", href=True, text=str(year))
-        annual_url = base_url + link["href"]
-        print(f"Saving files from url: {annual_url}")
-        # now follow the link to the page with that year's pdfs
-        checks, soup_annual = check_and_parse_page(annual_url)
-        if checks["fail"]:
-            print(f"Encountered an issue accessing {annual_url}")
-            print(
-                "Escaping the current loop due to the following error: "
-                f"{checks['error_message']}"
-            )
-            continue
-        pdf_links = soup_annual.find_all(name="a", href=re.compile("files"))
-        for idx, link in enumerate(pdf_links):
-            pdf_location = link["href"]
-            pdf_url = base_url + pdf_location
-            pdf_file = requests.get(pdf_url)
-            # derive name of the pdf file we're going to create
-            # encoding and decoding removes hidden characters
-            pdf_html_text = (
-                link.get_text().strip().encode("ascii", "ignore").decode("utf-8")
-            )
-            # handle cases where the date is written out in long form
-            parsed, pdf_date = parse_meeting_date(pdf_html_text)
-            if not parsed:
-                print(pdf_date)  # error message
-                continue
-            pdf_filename = pdf_date + ".pdf"
-            try:
-                with open(save_path / pdf_filename, "wb") as f:
-                    f.write(pdf_file.content)
-                total_counter += 1
-            except TypeError as err:
-                print(f"an error occurred with path {pdf_location}: {err}")
-    print(f"Wrote {total_counter} .pdf files to local repo.")
-    return
-
-
 def check_and_parse_page(url):
     """Tries to requests and parses a url into a BeautifulSoup object
 
@@ -172,7 +104,8 @@ def check_and_parse_page(url):
 
 
 def get_year_links(start_soup):
-    """
+    """Grabs the link to each page of BOE meetings
+
     Args:
         start_soup (BeautifulSoup object): the beautifulsoup object that
         parses the "landing page" for the minutes links
@@ -332,6 +265,16 @@ def download_pdf(year, date, url, dir=None):
 
 
 def get_meeting_links(soup, url):
+    """Grabs the links to the minutes for each BOE meeting on a given page
+
+    Args:
+        soup (BeautifulSoup object): the beautifulsoup object that
+        parses the "landing page" for each year of BOE meetings
+
+    Returns:
+        meeting_links (dict): dictionary with the dates of each BOE meeting
+        as keys and absolute links to their minutes as values
+    """
 
     meeting_links = {}
     meeting_tags = soup.find_all(name="a", href=re.compile("files"))
