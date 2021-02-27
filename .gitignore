@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 .DS_Store
 pdf_files/
+temp_dir/
 .vscode/settings.json
