@@ -131,3 +131,4 @@ dmypy.json
 pdf_files/
 temp_dir/
 .vscode/settings.json
+temp_dir/
