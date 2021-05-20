@@ -1,6 +1,33 @@
 from pathlib import Path
 import numpy as np
 
+REPLACEMENTS = [
+    ("Œ", "-"),
+    ("ﬁ", '"'),
+    ("ﬂ", '"'),
+    ("™", "'"),
+    ("Ł", "•"),
+    ("Š", "-"),
+    ("€", " "),
+    ("¬", "-"),
+    ("–", "…"),
+    ("‚", "'"),
+    ("Ž", "™"),
+    ("˚", "fl"),
+    ("˜", "fi"),
+    ("˛", "ff"),
+    ("˝", "ffi"),
+    ("š", "—"),
+    ("ü", "ti"),
+    ("î", "í"),
+    ("è", "c"),
+    ("ë", "e"),
+    ("Ð", "–"),
+    ("Ò", '"'),
+    ("Ó", '"'),
+    ("Õ", "'"),
+]
+
 
 def del_dir_contents(root):
     """Convenience function so we don't have to empy out pdf_dir by hand
@@ -78,7 +105,7 @@ def levenshtein_match(text, options):
     return best_match, best_score
 
 
-def replace_chars(text, replacement_list):
+def replace_chars(text, replacement_list=REPLACEMENTS):
     """Replaces a set of characters specified by a list of replacement keys
 
     Args:

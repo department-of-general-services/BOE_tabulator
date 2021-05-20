@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import re
 from datetime import datetime
+from collections import defaultdict
 
 from common.utils import levenshtein_match
 
@@ -182,3 +183,45 @@ def parse_long_dates(date_string):
     day = str(day).zfill(2)
 
     return True, "_".join([year, month, day])
+
+
+def check_missing_pdfs(meeting_links, dir=None):
+    """Checks the downloaded pdfs against a list of parsed meeting links and
+    returns any pdfs which are missing
+
+    Args:
+        meeting_links: Nested dict of year and the links to pdfs of the BOE
+        meetings in that year
+        dir: Path to directory that contains the pdf_files, defaults to current
+        working directory
+
+    Returns:
+        missing_links: Nested dict of pdfs that still need to be downloaded
+        extra_pdfs: List of downloaded pdfs not listed in the meeting links
+    """
+    missing_links = defaultdict(dict)
+    expected_pdfs = set()
+    downloaded_pdfs = set()
+
+    if not dir:
+        dir = Path.cwd() / "pdf_files"
+
+    if not dir.exists():
+        return meeting_links, None
+
+    # checks for any missing pdfs
+    for year, meetings in meeting_links.items():
+        year_dir = dir / year
+        for date, link in meetings.items():
+            pdf_name = date.replace("-", "_") + ".pdf"
+            expected_pdfs.add(pdf_name)
+            pdf_file = year_dir / pdf_name
+            if not pdf_file.exists():
+                missing_links[year][date] = link
+    # checks for any extra pdfs
+    for sub in dir.iterdir():
+        for pdf in sub.iterdir():
+            downloaded_pdfs.add(pdf.name)
+    extra_pdfs = downloaded_pdfs - expected_pdfs
+
+    return missing_links, extra_pdfs

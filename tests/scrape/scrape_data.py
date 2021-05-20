@@ -19,3 +19,14 @@ YEAR_LINKS = {
     "2010": "/minutes-2010",
     "2009": "/minutes-2009",
 }
+
+MEETING_LINKS = {
+    "2020": {
+        "2020-01-15": "https://www.fake-path.com/2020-01-15",
+        "2020-01-22": "https://www.fake-path.com/2020-01-22",
+    },
+    "2019": {
+        "2019-01-09": "https://www.fake-path.com/2019-01-15",
+        "2019-01-16": "https://www.fake-path.com/2019-01-08",
+    },
+}

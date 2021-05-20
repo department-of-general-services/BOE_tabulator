@@ -6,33 +6,6 @@ from datetime import datetime
 
 from common.utils import replace_chars
 
-REPLACEMENTS = [
-    ("Œ", "-"),
-    ("ﬁ", '"'),
-    ("ﬂ", '"'),
-    ("™", "'"),
-    ("Ł", "•"),
-    ("Š", "-"),
-    ("€", " "),
-    ("¬", "-"),
-    ("–", "…"),
-    ("‚", "'"),
-    ("Ž", "™"),
-    ("˚", "fl"),
-    ("˜", "fi"),
-    ("˛", "ff"),
-    ("˝", "ffi"),
-    ("š", "—"),
-    ("ü", "ti"),
-    ("î", "í"),
-    ("è", "c"),
-    ("ë", "e"),
-    ("Ð", "–"),
-    ("Ò", '"'),
-    ("Ó", '"'),
-    ("Õ", "'"),
-]
-
 
 def parse_pdf(pdf_path):
     """Parses the pdf of the minutes from a BOE meeting and cleans the text
@@ -152,5 +125,5 @@ class Minutes:
 
         # clean the raw text
         clean_text = " ".join(self.raw_text.split())  # remove double spaces
-        clean_text = replace_chars(clean_text, REPLACEMENTS)
+        clean_text = replace_chars(clean_text)
         self.clean_text = clean_text

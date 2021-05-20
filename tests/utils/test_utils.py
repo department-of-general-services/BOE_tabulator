@@ -1,6 +1,5 @@
 import pytest
 
-from common.parse_utils import REPLACEMENTS
 from common.scrape_utils import MONTHS
 from common.utils import replace_chars, levenshtein_match, levenshtein
 
@@ -11,7 +10,7 @@ alphabet = "abcdefghijklmnopqrstuvwxyz"
     "text,expected", [("March 17, 2010", "March 17, 2010"), ("ﬁquotesﬂ", '"quotes"')]
 )
 def test_replace_chars(text, expected):
-    output = replace_chars(text, REPLACEMENTS)
+    output = replace_chars(text)
     print("OUTPUT")
     print(output)
     print("EXPECTED")
