@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import re
 import PyPDF2
+from PyPDF2.utils import PdfReadError
 from datetime import datetime
 import numpy as np
 
@@ -185,8 +186,10 @@ def store_pdf_text_to_df(path):
         pdfFileObj = open(pdf_path, "rb")
         try:
             pdfReader = PyPDF2.PdfFileReader(pdfFileObj, strict=False)
-        except ValueError:
-            print(f"An error occurred reading file {pdf_path}")
+        except ValueError as e:
+            print(f"An error of type {e} occurred reading file {pdf_path}")
+        except PdfReadError as e:
+            print(f"An error of type {e} occurred reading file {pdf_path}")
         for page in pdfReader.pages:
             minutes += page.extractText().strip()
 
@@ -222,7 +225,7 @@ def replace_chars(text):
         ("€", " "),
         ("¬", "-"),
         ("–", "…"),
-        ("‚", "'"),
+        # ("‚", "'"),
         ("Ž", "™"),
         ("˚", "fl"),
         ("˜", "fi"),
